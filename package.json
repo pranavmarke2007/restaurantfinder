@@ -1,0 +1,9 @@
+{
+  "name": "restaurant-finder",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node Backend/server.js",
+    "check": "node --check Backend/script.js && node --check Backend/server.js"
+  }
+}
