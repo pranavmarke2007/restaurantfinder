@@ -175,11 +175,22 @@
             align-items: center;
             justify-content: space-between;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .match-score {
             font-weight: bold;
             color: #166534;
+        }
+
+        .distance-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 8px;
         }
 
         .reasons {
@@ -189,10 +200,77 @@
             font-size: 14px;
         }
 
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .favorite-button {
+            flex: 1;
+            min-width: 120px;
+        }
+
         .favorite-button.saved {
             background: #166534;
             border-color: #166534;
             color: white;
+        }
+
+        .directions-button {
+            flex: 1;
+            min-width: 120px;
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .directions-button:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        .autocomplete-container {
+            position: relative;
+            flex: 1;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: none;
+        }
+
+        .autocomplete-dropdown.active {
+            display: block;
+        }
+
+        .autocomplete-dropdown li {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .autocomplete-dropdown li:hover {
+            background: #f5f5f5;
+        }
+
+        .autocomplete-dropdown li.selected {
+            background: #e3f2fd;
+            color: #1976d2;
         }
 
         #pagination {
@@ -226,6 +304,85 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
             gap: 14px;
+        }
+
+        .preference-section {
+            margin-bottom: 24px;
+        }
+
+        .preference-section h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .preference-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .preference-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            position: relative;
+        }
+
+        .preference-card:hover {
+            border-color: #2563eb;
+            background: #f0f7ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+        }
+
+        .preference-card.selected {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: white;
+        }
+
+        .preference-card.selected .checkmark {
+            display: inline-block;
+        }
+
+        .checkmark {
+            display: none;
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background: white;
+            color: #2563eb;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            line-height: 20px;
+            text-align: center;
+        }
+
+        .preference-card-icon {
+            font-size: 28px;
+            line-height: 1;
+        }
+
+        .preference-card-label {
+            font-size: 12px;
+            word-break: break-word;
+            line-height: 1.2;
         }
 
         label {
@@ -301,7 +458,10 @@
         </section>
 
         <form id="locationForm" class="search-box">
-            <input id="locationInput" type="text" placeholder="Enter your location, city, or area">
+            <div class="autocomplete-container">
+                <input id="locationInput" type="text" placeholder="Enter your location, city, or area">
+                <ul id="locationAutocomplete" class="autocomplete-dropdown"></ul>
+            </div>
             <button class="primary" type="submit">Search</button>
             <button id="currentLocationButton" type="button">Use my current location</button>
         </form>
@@ -310,7 +470,8 @@
 
         <div class="controls">
             <span>Sort by</span>
-            <button id="bestMatchesButton" class="active" type="button">Best Matches</button>
+            <button id="hybridButton" class="active" type="button">Recommended (Nearest + Best Match)</button>
+            <button id="bestMatchesButton" type="button">Best Matches</button>
             <button id="closestButton" type="button">Closest</button>
             <button id="exportPreferencesButton" type="button">Export Preferences</button>
             <label>
@@ -359,40 +520,70 @@
     <dialog id="preferencesDialog">
         <form id="preferencesForm" class="modal" method="dialog">
             <h2>Your Taste Preferences</h2>
-            <p>Add comma-separated items. Use a weight from 1 to 5 to say how important each group is.</p>
+            <p>Click cards to select your preferences (multi-select enabled)</p>
 
-            <div class="preference-grid">
-                <label>
-                    Favorite restaurants
-                    <textarea id="favoriteRestaurantsInput" placeholder="McDonald's, Barbeque Nation, Pizza Hut"></textarea>
-                    Weight
-                    <input id="favoriteRestaurantsWeight" type="number" min="1" max="5" value="3">
-                </label>
-
-                <label>
-                    Favorite cuisines
-                    <textarea id="favoriteCuisinesInput" placeholder="Indian, Italian, Chinese"></textarea>
-                    Weight
-                    <input id="favoriteCuisinesWeight" type="number" min="1" max="5" value="5">
-                </label>
-
-                <label>
-                    Favorite dishes
-                    <textarea id="favoriteDishesInput" placeholder="Biryani, pizza, dosa"></textarea>
-                    Weight
-                    <input id="favoriteDishesWeight" type="number" min="1" max="5" value="4">
-                </label>
+            <!-- Cuisines -->
+            <div class="preference-section">
+                <h3>Favorite Cuisines</h3>
+                <div class="preference-cards" id="cuisinesCards"></div>
+                <input type="hidden" id="cuisinesSelected">
             </div>
 
-            <label>
-                Taste profile
-                <textarea id="tasteProfileInput" placeholder="Spicy food, family restaurants, vegetarian options, cafes with desserts"></textarea>
-            </label>
+            <!-- Dishes -->
+            <div class="preference-section">
+                <h3>Favorite Dishes</h3>
+                <div class="preference-cards" id="dishesCards"></div>
+                <input type="hidden" id="dishesSelected">
+            </div>
+
+            <!-- Dietary -->
+            <div class="preference-section">
+                <h3>Dietary Preferences</h3>
+                <div class="preference-cards" id="dietaryCards"></div>
+                <input type="hidden" id="dietarySelected">
+            </div>
+
+            <!-- Meal Type -->
+            <div class="preference-section">
+                <h3>Preferred Meal Type</h3>
+                <div class="preference-cards" id="mealTypeCards"></div>
+                <input type="hidden" id="mealTypeSelected">
+            </div>
+
+            <!-- Atmosphere -->
+            <div class="preference-section">
+                <h3>Atmosphere/Vibe</h3>
+                <div class="preference-cards" id="atmosphereCards"></div>
+                <input type="hidden" id="atmosphereSelected">
+            </div>
+
+            <!-- Budget -->
+            <div class="preference-section">
+                <h3>Budget Range</h3>
+                <div class="preference-cards" id="budgetCards"></div>
+                <input type="hidden" id="budgetSelected">
+            </div>
+
+            <!-- Features -->
+            <div class="preference-section">
+                <h3>Special Features</h3>
+                <div class="preference-cards" id="featuresCards"></div>
+                <input type="hidden" id="featuresSelected">
+            </div>
+
+            <!-- Taste Profile -->
+            <div class="preference-section">
+                <h3>Additional Notes</h3>
+                <label>
+                    Taste Profile (optional)
+                    <textarea id="tasteProfileInput" placeholder="E.g., Spicy food, family restaurants, romantic ambiance"></textarea>
+                </label>
+            </div>
 
             <div class="modal-actions">
                 <button class="primary" type="submit">Save Preferences</button>
                 <button id="skipPreferencesButton" type="button">Skip</button>
-                <button id="clearPreferencesButton" type="button">Clear Preferences</button>
+                <button id="clearPreferencesButton" type="button">Clear All</button>
             </div>
         </form>
     </dialog>

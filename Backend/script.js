@@ -1,5 +1,6 @@
 const locationForm = document.getElementById("locationForm");
 const locationInput = document.getElementById("locationInput");
+const locationAutocomplete = document.getElementById("locationAutocomplete");
 const currentLocationButton = document.getElementById("currentLocationButton");
 const appShell = document.getElementById("appShell");
 const authStatus = document.getElementById("authStatus");
@@ -17,6 +18,7 @@ const authEmailInput = document.getElementById("authEmailInput");
 const authPasswordInput = document.getElementById("authPasswordInput");
 const authSubmitButton = document.getElementById("authSubmitButton");
 const preferencesButton = document.getElementById("preferencesButton");
+const hybridButton = document.getElementById("hybridButton");
 const bestMatchesButton = document.getElementById("bestMatchesButton");
 const closestButton = document.getElementById("closestButton");
 const exportPreferencesButton = document.getElementById("exportPreferencesButton");
@@ -25,12 +27,6 @@ const preferencesDialog = document.getElementById("preferencesDialog");
 const preferencesForm = document.getElementById("preferencesForm");
 const skipPreferencesButton = document.getElementById("skipPreferencesButton");
 const clearPreferencesButton = document.getElementById("clearPreferencesButton");
-const favoriteRestaurantsInput = document.getElementById("favoriteRestaurantsInput");
-const favoriteRestaurantsWeight = document.getElementById("favoriteRestaurantsWeight");
-const favoriteCuisinesInput = document.getElementById("favoriteCuisinesInput");
-const favoriteCuisinesWeight = document.getElementById("favoriteCuisinesWeight");
-const favoriteDishesInput = document.getElementById("favoriteDishesInput");
-const favoriteDishesWeight = document.getElementById("favoriteDishesWeight");
 const tasteProfileInput = document.getElementById("tasteProfileInput");
 const tasteSignatureText = document.getElementById("tasteSignatureText");
 const favoriteRestaurantsSummary = document.getElementById("favoriteRestaurantsSummary");
@@ -47,9 +43,89 @@ const authTokenStorageKey = "restaurantFinderAuthToken";
 const apiBaseUrl = window.location.protocol === "file:" || window.location.port === "5500"
     ? "http://localhost:5501"
     : "";
+
+// Preference options with icons
+const preferenceOptions = {
+    cuisines: [
+        { name: "Indian", icon: "🇮🇳" },
+        { name: "Italian", icon: "🇮🇹" },
+        { name: "Chinese", icon: "🥡" },
+        { name: "Mexican", icon: "🌮" },
+        { name: "Japanese", icon: "🍱" },
+        { name: "Thai", icon: "🍜" },
+        { name: "Continental", icon: "🍽️" },
+        { name: "Mediterranean", icon: "🫒" },
+        { name: "Korean", icon: "🍚" },
+        { name: "Vietnamese", icon: "🍲" },
+        { name: "Middle Eastern", icon: "🥙" },
+        { name: "Fast Food", icon: "🍔" }
+    ],
+    dishes: [
+        { name: "Biryani", icon: "🍚" },
+        { name: "Pizza", icon: "🍕" },
+        { name: "Burger", icon: "🍔" },
+        { name: "Pasta", icon: "🍝" },
+        { name: "Sushi", icon: "🍣" },
+        { name: "Tacos", icon: "🌮" },
+        { name: "Dosa", icon: "🥘" },
+        { name: "Noodles", icon: "🍜" },
+        { name: "Kebab", icon: "🍢" },
+        { name: "Samosa", icon: "🥟" },
+        { name: "Steak", icon: "🥩" },
+        { name: "Seafood", icon: "🦞" }
+    ],
+    dietary: [
+        { name: "Vegetarian", icon: "🥗" },
+        { name: "Vegan", icon: "🌱" },
+        { name: "Gluten-free", icon: "🌾" },
+        { name: "Halal", icon: "☪️" },
+        { name: "Kosher", icon: "✡️" },
+        { name: "Non-Veg", icon: "🍖" },
+        { name: "Pescatarian", icon: "🐟" },
+        { name: "Jain", icon: "✨" }
+    ],
+    mealType: [
+        { name: "Breakfast", icon: "🍳" },
+        { name: "Lunch", icon: "🍲" },
+        { name: "Dinner", icon: "🍽️" },
+        { name: "Brunch", icon: "🥐" },
+        { name: "Desserts", icon: "🍰" },
+        { name: "Coffee", icon: "☕" },
+        { name: "Snacks", icon: "🥨" },
+        { name: "Late Night", icon: "🌙" }
+    ],
+    atmosphere: [
+        { name: "Casual", icon: "👕" },
+        { name: "Fine Dining", icon: "🎩" },
+        { name: "Family-friendly", icon: "👨‍👩‍👧‍👦" },
+        { name: "Romantic", icon: "💕" },
+        { name: "Trendy", icon: "✨" },
+        { name: "Quiet", icon: "🤫" },
+        { name: "Lively", icon: "🎉" },
+        { name: "Cozy", icon: "🕯️" }
+    ],
+    budget: [
+        { name: "Budget", icon: "💰" },
+        { name: "Moderate", icon: "💵" },
+        { name: "Premium", icon: "💎" },
+        { name: "Luxury", icon: "👑" }
+    ],
+    features: [
+        { name: "Outdoor Seating", icon: "🌳" },
+        { name: "Live Music", icon: "🎵" },
+        { name: "WiFi", icon: "📶" },
+        { name: "Parking", icon: "🅿️" },
+        { name: "Pet-friendly", icon: "🐕" },
+        { name: "Delivery", icon: "🚚" },
+        { name: "Takeaway", icon: "📦" },
+        { name: "Reservations", icon: "📋" }
+    ]
+};
+
 const sortModes = {
     best: "best",
-    closest: "closest"
+    closest: "closest",
+    hybrid: "hybrid"
 };
 
 let authMode = "signIn";
@@ -57,7 +133,7 @@ let currentUser = null;
 let userPreferences = createDefaultPreferences();
 let restaurants = [];
 let currentPage = 1;
-let sortMode = sortModes.best;
+let sortMode = sortModes.hybrid;
 let lastSearchPoint = null;
 let lastSearchLabel = "";
 const imageCache = new Map();
@@ -146,6 +222,11 @@ function createDefaultPreferences() {
         favoriteRestaurants: [],
         favoriteCuisines: [],
         favoriteDishes: [],
+        dietaryPreferences: [],
+        mealType: [],
+        atmosphere: [],
+        budget: [],
+        features: [],
         tasteProfile: "",
         tasteSignature: "",
         savedRestaurants: []
@@ -178,6 +259,11 @@ function generateTasteSignature(preferences) {
         ...preferences.favoriteCuisines.map((item) => item.name),
         ...preferences.favoriteDishes.map((item) => item.name),
         ...preferences.favoriteRestaurants.map((item) => item.name),
+        ...preferences.dietaryPreferences.map((item) => item.name),
+        ...preferences.mealType.map((item) => item.name),
+        ...preferences.atmosphere.map((item) => item.name),
+        ...preferences.budget.map((item) => item.name),
+        ...preferences.features.map((item) => item.name),
         preferences.tasteProfile
     ].filter(Boolean);
 
@@ -191,6 +277,11 @@ function normalizePreferences(preferences) {
         favoriteRestaurants: cleanPreferenceList(preferences.favoriteRestaurants),
         favoriteCuisines: cleanPreferenceList(preferences.favoriteCuisines),
         favoriteDishes: cleanPreferenceList(preferences.favoriteDishes),
+        dietaryPreferences: cleanPreferenceList(preferences.dietaryPreferences),
+        mealType: cleanPreferenceList(preferences.mealType),
+        atmosphere: cleanPreferenceList(preferences.atmosphere),
+        budget: cleanPreferenceList(preferences.budget),
+        features: cleanPreferenceList(preferences.features),
         tasteProfile: String(preferences.tasteProfile || "").trim(),
         savedRestaurants: preferences.savedRestaurants || []
     };
@@ -232,28 +323,99 @@ function parsePreferenceTextarea(value, weight) {
 }
 
 function fillPreferencesForm() {
-    favoriteRestaurantsInput.value = userPreferences.favoriteRestaurants.map((item) => item.name).join(", ");
-    favoriteRestaurantsWeight.value = userPreferences.favoriteRestaurants[0]?.weight || 3;
-    favoriteCuisinesInput.value = userPreferences.favoriteCuisines.map((item) => item.name).join(", ");
-    favoriteCuisinesWeight.value = userPreferences.favoriteCuisines[0]?.weight || 5;
-    favoriteDishesInput.value = userPreferences.favoriteDishes.map((item) => item.name).join(", ");
-    favoriteDishesWeight.value = userPreferences.favoriteDishes[0]?.weight || 4;
+    // Render preference cards
+    renderPreferenceCards("cuisines", userPreferences.favoriteCuisines);
+    renderPreferenceCards("dishes", userPreferences.favoriteDishes);
+    renderPreferenceCards("dietary", userPreferences.dietaryPreferences);
+    renderPreferenceCards("mealType", userPreferences.mealType);
+    renderPreferenceCards("atmosphere", userPreferences.atmosphere);
+    renderPreferenceCards("budget", userPreferences.budget);
+    renderPreferenceCards("features", userPreferences.features);
     tasteProfileInput.value = userPreferences.tasteProfile;
 }
 
-function summarizePreferenceList(items) {
+function renderPreferenceCards(category, selectedItems) {
+    const containerId = `${category}Cards`;
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = "";
+    const options = preferenceOptions[category] || [];
+    const selectedNames = new Set(selectedItems.map((item) => item.name));
+
+    options.forEach((option) => {
+        const card = document.createElement("div");
+        card.className = `preference-card ${selectedNames.has(option.name) ? "selected" : ""}`;
+        card.innerHTML = `
+            <span class="preference-card-icon">${option.icon}</span>
+            <span class="preference-card-label">${option.name}</span>
+            <span class="checkmark">✓</span>
+        `;
+
+        card.addEventListener("click", () => {
+            card.classList.toggle("selected");
+            updatePreferenceFromCards(category);
+        });
+
+        container.appendChild(card);
+    });
+}
+
+function updatePreferenceFromCards(category) {
+    const containerId = `${category}Cards`;
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const selectedCards = container.querySelectorAll(".preference-card.selected");
+    const selectedNames = Array.from(selectedCards).map((card) => {
+        return card.querySelector(".preference-card-label").textContent.trim();
+    });
+
+    // Map to preference weight (all cards get weight 4 as default)
+    const preferenceArray = selectedNames.map((name) => ({ name, weight: 4 }));
+
+    // Update user preferences
+    if (category === "cuisines") {
+        userPreferences.favoriteCuisines = preferenceArray;
+    } else if (category === "dishes") {
+        userPreferences.favoriteDishes = preferenceArray;
+    } else if (category === "dietary") {
+        userPreferences.dietaryPreferences = preferenceArray;
+    } else if (category === "mealType") {
+        userPreferences.mealType = preferenceArray;
+    } else if (category === "atmosphere") {
+        userPreferences.atmosphere = preferenceArray;
+    } else if (category === "budget") {
+        userPreferences.budget = preferenceArray;
+    } else if (category === "features") {
+        userPreferences.features = preferenceArray;
+    }
+}
+
+function summarizePreferenceList(items, category = null) {
     if (items.length === 0) {
         return "None yet";
     }
 
-    return items.slice(0, 4).map((item) => item.name).join(", ") +
-        (items.length > 4 ? ` +${items.length - 4} more` : "");
+    const itemsToShow = items.slice(0, 3);
+    const displayItems = itemsToShow.map((item) => {
+        // Try to find emoji from preference options
+        let emoji = "";
+        if (category) {
+            const options = preferenceOptions[category] || [];
+            const found = options.find((opt) => opt.name === item.name);
+            if (found) emoji = found.icon + " ";
+        }
+        return emoji + item.name;
+    }).join(" • ");
+
+    return displayItems + (items.length > 3 ? ` +${items.length - 3} more` : "");
 }
 
 function updatePreferenceSummary() {
+    favoriteCuisinesSummary.textContent = summarizePreferenceList(userPreferences.favoriteCuisines, "cuisines");
+    favoriteDishesSummary.textContent = summarizePreferenceList(userPreferences.favoriteDishes, "dishes");
     favoriteRestaurantsSummary.textContent = summarizePreferenceList(userPreferences.favoriteRestaurants);
-    favoriteCuisinesSummary.textContent = summarizePreferenceList(userPreferences.favoriteCuisines);
-    favoriteDishesSummary.textContent = summarizePreferenceList(userPreferences.favoriteDishes);
     savedRestaurantsSummary.textContent = `${userPreferences.savedRestaurants.length} restaurants`;
     tasteSignatureText.textContent = userPreferences.tasteSignature
         ? `Taste signature: ${userPreferences.tasteSignature}`
@@ -261,18 +423,15 @@ function updatePreferenceSummary() {
 }
 
 async function readPreferencesForm() {
-    userPreferences.favoriteRestaurants = parsePreferenceTextarea(
-        favoriteRestaurantsInput.value,
-        favoriteRestaurantsWeight.value
-    );
-    userPreferences.favoriteCuisines = parsePreferenceTextarea(
-        favoriteCuisinesInput.value,
-        favoriteCuisinesWeight.value
-    );
-    userPreferences.favoriteDishes = parsePreferenceTextarea(
-        favoriteDishesInput.value,
-        favoriteDishesWeight.value
-    );
+    // Read from all preference categories
+    updatePreferenceFromCards("cuisines");
+    updatePreferenceFromCards("dishes");
+    updatePreferenceFromCards("dietary");
+    updatePreferenceFromCards("mealType");
+    updatePreferenceFromCards("atmosphere");
+    updatePreferenceFromCards("budget");
+    updatePreferenceFromCards("features");
+
     userPreferences.tasteProfile = tasteProfileInput.value.trim();
     await savePreferences();
     updatePreferenceSummary();
@@ -438,6 +597,20 @@ function sortRestaurants() {
             return a.distance - b.distance || b.matchScore - a.matchScore;
         }
 
+        if (sortMode === sortModes.hybrid) {
+            // Hybrid: balance distance and match score
+            // Normalize scores to 0-100 and 0-100
+            const maxDistance = Math.max(...restaurants.map((r) => r.distance || 0), 1);
+            const aNormalizedDistance = (a.distance || 0) / maxDistance * 100;
+            const bNormalizedDistance = (b.distance || 0) / maxDistance * 100;
+            
+            // 60% weight on match score, 40% on distance
+            const aScore = (a.matchScore || 0) * 0.6 + (100 - aNormalizedDistance) * 0.4;
+            const bScore = (b.matchScore || 0) * 0.6 + (100 - bNormalizedDistance) * 0.4;
+            
+            return bScore - aScore;
+        }
+
         return b.matchScore - a.matchScore || a.distance - b.distance;
     });
 }
@@ -502,6 +675,122 @@ async function searchCommonsImage(query) {
     return page?.imageinfo?.[0]?.url || "";
 }
 
+async function searchDuckDuckGoImage(query) {
+    if (!query || query === "Unnamed restaurant") {
+        return "";
+    }
+
+    try {
+        const searchQuery = `${query} restaurant`;
+        const params = new URLSearchParams({
+            q: searchQuery,
+            t: "h_",
+            ia: "images",
+            iax: "images"
+        });
+        const response = await fetch(`https://duckduckgo.com/?${params}`);
+
+        if (!response.ok) {
+            return "";
+        }
+
+        const html = await response.text();
+        const match = html.match(/"image":"([^"]+)"/);
+        return match ? match[1].replace(/\\\//g, "/") : "";
+    } catch (error) {
+        console.error("DuckDuckGo image search failed:", error);
+        return "";
+    }
+}
+
+async function searchGoogleRestaurantImage(query) {
+    if (!query || query === "Unnamed restaurant") {
+        return "";
+    }
+
+    try {
+        const searchQuery = `${query} restaurant`;
+        const params = new URLSearchParams({
+            q: searchQuery,
+            tbm: "isch"
+        });
+        const encodedUrl = `https://www.google.com/search?${params}`;
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(encodedUrl)}`;
+        
+        const response = await fetch(proxyUrl);
+        if (!response.ok) return "";
+
+        const html = await response.text();
+        const match = html.match(/"ou":"([^"]+)"/);
+        if (match && match[1]) {
+            const url = match[1];
+            return url.startsWith("http") ? url : "";
+        }
+        return "";
+    } catch (error) {
+        console.error("Google image search failed:", error);
+        return "";
+    }
+}
+
+async function searchUnsplashImage(query) {
+    if (!query || query === "Unnamed restaurant") {
+        return "";
+    }
+
+    try {
+        const searchQuery = `${query} restaurant food`;
+        const params = new URLSearchParams({
+            query: searchQuery,
+            per_page: "1",
+            order_by: "relevant"
+        });
+        const response = await fetch(`https://api.unsplash.com/search/photos?${params}`, {
+            headers: {
+                "Accept-Version": "v1"
+            }
+        });
+
+        if (!response.ok) {
+            return "";
+        }
+
+        const data = await response.json();
+        return data.results?.[0]?.urls?.regular || "";
+    } catch (error) {
+        console.error("Unsplash image search failed:", error);
+        return "";
+    }
+}
+
+async function searchPixabayImage(query) {
+    if (!query || query === "Unnamed restaurant") {
+        return "";
+    }
+
+    try {
+        const searchQuery = `${query} restaurant`;
+        const params = new URLSearchParams({
+            q: searchQuery,
+            image_type: "photo",
+            order: "popular",
+            per_page: "3",
+            safesearch: "true"
+        });
+        const response = await fetch(`https://pixabay.com/api/?${params}`);
+
+        if (!response.ok) {
+            return "";
+        }
+
+        const data = await response.json();
+        return data.hits?.[0]?.webformatURL || data.hits?.[0]?.pixelURL || "";
+    } catch (error) {
+        console.error("Pixabay image search failed:", error);
+        return "";
+    }
+}
+
 async function resolveRestaurantImage(restaurant) {
     const cacheKey = `${restaurant.id}-${restaurant.name}`;
 
@@ -514,6 +803,22 @@ async function resolveRestaurantImage(restaurant) {
 
     if (!imageUrl) {
         imageUrl = await getWikidataImage(tags.wikidata);
+    }
+
+    if (!imageUrl) {
+        imageUrl = await searchGoogleRestaurantImage(`${restaurant.name} ${lastSearchLabel}`);
+    }
+
+    if (!imageUrl) {
+        imageUrl = await searchPixabayImage(`${restaurant.name} ${lastSearchLabel}`);
+    }
+
+    if (!imageUrl) {
+        imageUrl = await searchUnsplashImage(`${restaurant.name} ${lastSearchLabel}`);
+    }
+
+    if (!imageUrl) {
+        imageUrl = await searchDuckDuckGoImage(`${restaurant.name} ${lastSearchLabel}`);
     }
 
     if (!imageUrl) {
@@ -626,10 +931,28 @@ function renderRestaurants() {
         const address = document.createElement("p");
         address.textContent = restaurant.address;
 
-        const distance = document.createElement("p");
+        const distance = document.createElement("div");
+        distance.className = "distance-badge";
         distance.textContent = Number.isFinite(restaurant.distance)
-            ? `${restaurant.distance.toFixed(1)} km straight-line`
-            : "Distance not available";
+            ? `📍 ${restaurant.distance.toFixed(1)} km away`
+            : "📍 Distance not available";
+
+        const directionsButton = document.createElement("button");
+        directionsButton.type = "button";
+        directionsButton.className = "directions-button";
+        directionsButton.textContent = "Directions";
+        directionsButton.addEventListener("click", () => {
+            const coords = getRestaurantCoordinates(restaurant);
+            if (coords.lat && coords.lon) {
+                const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lon}&destination_place_id=${restaurant.id}`;
+                window.open(mapsUrl, "_blank");
+            } else {
+                const encodedName = encodeURIComponent(restaurant.name);
+                const encodedAddress = encodeURIComponent(restaurant.address || "");
+                const mapsUrl = `https://www.google.com/maps/search/${encodedName}+${encodedAddress}`;
+                window.open(mapsUrl, "_blank");
+            }
+        });
 
         const reasons = document.createElement("ul");
         reasons.className = "reasons";
@@ -667,6 +990,11 @@ function renderRestaurants() {
             }
         });
 
+        const actionButtons = document.createElement("div");
+        actionButtons.className = "action-buttons";
+        actionButtons.appendChild(favoriteButton);
+        actionButtons.appendChild(directionsButton);
+
         matchRow.appendChild(title);
         matchRow.appendChild(score);
         content.appendChild(matchRow);
@@ -674,7 +1002,7 @@ function renderRestaurants() {
         content.appendChild(address);
         content.appendChild(distance);
         content.appendChild(reasons);
-        content.appendChild(favoriteButton);
+        content.appendChild(actionButtons);
         listItem.appendChild(image);
         listItem.appendChild(content);
         restaurantsList.appendChild(listItem);
@@ -707,20 +1035,149 @@ function renderPagination() {
     }
 }
 
-async function getCoordinatesFromLocation(location) {
-    const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(location)}`
-    );
-    const data = await response.json();
-
-    if (data.length === 0) {
-        throw new Error("Location not found");
+function normalizeLocationQuery(location) {
+    if (!location || typeof location !== "string") {
+        return "";
     }
 
-    return {
-        lat: Number(data[0].lat),
-        lon: Number(data[0].lon)
-    };
+    const cleaned = location
+        .trim()
+        .replace(/\s+/g, " ")
+        .replace(/\b(?:restaurant|restaurants|cafe|cafes|food|foods|hotel|hotels|eatery|eateries|dining|bar|pub|takeaway|near|around|in|at|for)\b/gi, "")
+        .replace(/\s+/g, " ")
+        .replace(/\s*,\s*/g, ", ")
+        .trim();
+
+    if (!cleaned || cleaned === ",") {
+        return location.trim();
+    }
+
+    return cleaned
+        .replace(/\s*,\s*$/, "")
+        .replace(/^(?:,\s*)+|(?:\s*,\s*)+$/g, "")
+        .trim();
+}
+
+function getPreferredLocationLabel(query) {
+    const normalized = normalizeLocationQuery(query);
+    if (!normalized) {
+        return query?.trim() || "";
+    }
+
+    const cityLike = normalized
+        .split(/\s*,\s*|\s+/)
+        .filter(Boolean)
+        .filter((part) => !/^(restaurant|restaurants|cafe|cafes|food|hotel|hotels|near|around|in|at|for)$/i.test(part));
+
+    return cityLike.length ? cityLike.join(" ") : normalized;
+}
+
+async function geocodeWithOpenMeteo(query) {
+    const response = await fetch(
+        `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5&language=en&format=json`
+    );
+
+    if (!response.ok) {
+        return [];
+    }
+
+    const data = await response.json();
+    return (data.results || []).map((entry) => ({
+        lat: Number(entry.latitude),
+        lon: Number(entry.longitude),
+        label: entry.name || query,
+        display_name: `${entry.name}, ${entry.admin1 || ""}, ${entry.country || ""}`.replace(/,\s*,/g, ",").replace(/,\s*$/, "")
+    }));
+}
+
+async function geocodeWithPhoton(query) {
+    const response = await fetch(
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5`
+    );
+
+    if (!response.ok) {
+        return [];
+    }
+
+    const data = await response.json();
+    return (data.features || []).map((feature) => ({
+        lat: Number(feature.geometry.coordinates[1]),
+        lon: Number(feature.geometry.coordinates[0]),
+        label: feature.properties?.name || query,
+        display_name: [
+            feature.properties?.name,
+            feature.properties?.city,
+            feature.properties?.county,
+            feature.properties?.state,
+            feature.properties?.country
+        ].filter(Boolean).join(", ")
+    }));
+}
+
+async function geocodeWithNominatim(query) {
+    const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&limit=8&addressdetails=1&q=${encodeURIComponent(query)}`
+    );
+
+    if (!response.ok) {
+        return [];
+    }
+
+    return await response.json();
+}
+
+async function getCoordinatesFromLocation(location) {
+    const original = String(location || "").trim();
+    const primaryQuery = normalizeLocationQuery(original);
+    const candidates = [primaryQuery, original]
+        .map((value) => value && value.trim())
+        .filter(Boolean)
+        .filter((value, index, array) => array.indexOf(value) === index);
+
+    const providers = [
+        geocodeWithOpenMeteo,
+        geocodeWithPhoton,
+        geocodeWithNominatim
+    ];
+
+    for (const query of candidates) {
+        for (const provider of providers) {
+            try {
+                const data = await provider(query);
+                if (!Array.isArray(data) || data.length === 0) {
+                    continue;
+                }
+
+                const preferred = data.find((entry) => {
+                    const type = (entry.type || entry.properties?.type || "").toLowerCase();
+                    const className = (entry.class || entry.properties?.osm_key || "").toLowerCase();
+                    const displayName = ((entry.display_name || entry.label || entry.properties?.name || "") + " " + (entry.properties?.city || "") + " " + (entry.properties?.state || "") + " " + (entry.properties?.country || "")).toLowerCase();
+                    const queryText = query.toLowerCase();
+                    const isAmenity = ["amenity", "restaurant", "cafe", "shop", "house"].includes(type) || ["amenity", "restaurant", "cafe", "shop", "railway"].includes(className);
+                    return !isAmenity && (displayName.includes(queryText) || (entry.name || entry.properties?.name || "").toLowerCase().includes(queryText));
+                }) || data.find((entry) => {
+                    const type = (entry.type || entry.properties?.type || "").toLowerCase();
+                    const className = (entry.class || entry.properties?.osm_key || "").toLowerCase();
+                    return !["amenity", "restaurant", "cafe", "shop", "house"].includes(type) && !["amenity", "restaurant", "cafe", "shop", "railway"].includes(className);
+                }) || data[0];
+
+                const lat = Number(preferred.lat ?? preferred.latitude ?? preferred.geometry?.coordinates?.[1]);
+                const lon = Number(preferred.lon ?? preferred.longitude ?? preferred.geometry?.coordinates?.[0]);
+
+                if (Number.isFinite(lat) && Number.isFinite(lon)) {
+                    return {
+                        lat,
+                        lon,
+                        label: getPreferredLocationLabel(query)
+                    };
+                }
+            } catch (error) {
+                console.error("Geocoding failed for query:", query, provider.name, error);
+            }
+        }
+    }
+
+    throw new Error("Location not found");
 }
 
 async function getRestaurants(lat, lon) {
@@ -746,6 +1203,7 @@ async function getRestaurants(lat, lon) {
 
     const data = await response.json();
     lastSearchPoint = { lat: Number(lat), lon: Number(lon) };
+    lastSearchLabel = getPreferredLocationLabel(locationInput.value || "") || "restaurant";
     restaurants = enhanceRestaurants(data.elements || [], lastSearchPoint);
     applySortingAndRender();
 }
@@ -757,6 +1215,7 @@ async function searchByLocation(location) {
         showMessage("Finding your location...");
 
         const coordinates = await getCoordinatesFromLocation(location);
+        lastSearchLabel = coordinates.label || getPreferredLocationLabel(location) || location.trim();
 
         showMessage("Loading restaurants near that location...");
         await getRestaurants(coordinates.lat, coordinates.lon);
@@ -876,6 +1335,112 @@ function importPreferences(file) {
     reader.readAsText(file);
 }
 
+let autocompleteTimeout;
+let autocompleteResults = [];
+let selectedAutocompleteIndex = -1;
+
+async function fetchLocationSuggestions(input) {
+    const normalizedInput = normalizeLocationQuery(input);
+
+    if (normalizedInput.length < 2) {
+        locationAutocomplete.classList.remove("active");
+        locationAutocomplete.innerHTML = "";
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&limit=5&addressdetails=1&q=${encodeURIComponent(normalizedInput)}`
+        );
+        const data = await response.json();
+        autocompleteResults = data;
+
+        locationAutocomplete.innerHTML = "";
+        if (data.length > 0) {
+            locationAutocomplete.classList.add("active");
+            data.forEach((result, index) => {
+                const li = document.createElement("li");
+                li.textContent = result.display_name;
+                li.addEventListener("click", () => {
+                    locationInput.value = result.display_name;
+                    locationAutocomplete.classList.remove("active");
+                    locationAutocomplete.innerHTML = "";
+                    autocompleteResults = [];
+                });
+                li.addEventListener("mouseenter", () => {
+                    selectedAutocompleteIndex = index;
+                    updateAutocompleteSelection();
+                });
+                locationAutocomplete.appendChild(li);
+            });
+            selectedAutocompleteIndex = -1;
+        } else {
+            locationAutocomplete.classList.remove("active");
+        }
+    } catch (error) {
+        console.error("Location autocomplete error:", error);
+        locationAutocomplete.classList.remove("active");
+    }
+}
+
+function updateAutocompleteSelection() {
+    const items = locationAutocomplete.querySelectorAll("li");
+    items.forEach((item, index) => {
+        if (index === selectedAutocompleteIndex) {
+            item.classList.add("selected");
+        } else {
+            item.classList.remove("selected");
+        }
+    });
+}
+
+locationInput.addEventListener("input", (event) => {
+    clearTimeout(autocompleteTimeout);
+    const value = event.target.value.trim();
+    selectedAutocompleteIndex = -1;
+
+    if (value.length < 2) {
+        locationAutocomplete.classList.remove("active");
+        locationAutocomplete.innerHTML = "";
+        return;
+    }
+
+    autocompleteTimeout = setTimeout(() => {
+        fetchLocationSuggestions(value);
+    }, 300);
+});
+
+locationInput.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown") {
+        event.preventDefault();
+        selectedAutocompleteIndex = Math.min(selectedAutocompleteIndex + 1, autocompleteResults.length - 1);
+        updateAutocompleteSelection();
+    } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        selectedAutocompleteIndex = Math.max(selectedAutocompleteIndex - 1, -1);
+        updateAutocompleteSelection();
+    } else if (event.key === "Enter" && selectedAutocompleteIndex >= 0) {
+        event.preventDefault();
+        const result = autocompleteResults[selectedAutocompleteIndex];
+        if (result) {
+            locationInput.value = result.display_name;
+            locationAutocomplete.classList.remove("active");
+            locationAutocomplete.innerHTML = "";
+            autocompleteResults = [];
+        }
+    } else if (event.key === "Escape") {
+        locationAutocomplete.classList.remove("active");
+        locationAutocomplete.innerHTML = "";
+        autocompleteResults = [];
+    }
+});
+
+document.addEventListener("click", (event) => {
+    if (event.target !== locationInput && !locationAutocomplete.contains(event.target)) {
+        locationAutocomplete.classList.remove("active");
+    }
+});
+
 locationForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
@@ -970,6 +1535,7 @@ bestMatchesButton.addEventListener("click", () => {
     sortMode = sortModes.best;
     bestMatchesButton.classList.add("active");
     closestButton.classList.remove("active");
+    hybridButton.classList.remove("active");
     applySortingAndRender();
 });
 
@@ -977,6 +1543,15 @@ closestButton.addEventListener("click", () => {
     sortMode = sortModes.closest;
     closestButton.classList.add("active");
     bestMatchesButton.classList.remove("active");
+    hybridButton.classList.remove("active");
+    applySortingAndRender();
+});
+
+hybridButton.addEventListener("click", () => {
+    sortMode = sortModes.hybrid;
+    hybridButton.classList.add("active");
+    bestMatchesButton.classList.remove("active");
+    closestButton.classList.remove("active");
     applySortingAndRender();
 });
 
