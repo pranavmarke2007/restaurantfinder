@@ -45,9 +45,25 @@ const favRestaurantAutocomplete = document.getElementById("favRestaurantAutocomp
 
 const restaurantsPerPage = 10;
 const authTokenStorageKey = "restaurantFinderAuthToken";
-const apiBaseUrl = window.location.protocol === "file:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-    ? (window.location.port === "5501" ? "" : "http://localhost:5501")
-    : "";
+const apiBaseUrl = (() => {
+    const isLocalHost = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+
+    if (window.location.protocol === "file:") {
+        return "http://localhost:5501";
+    }
+
+    if (window.location.protocol === "http:" || window.location.protocol === "https:") {
+        if (window.location.port === "5501") {
+            return "";
+        }
+
+        if (isLocalHost) {
+            return "http://localhost:5501";
+        }
+    }
+
+    return "http://localhost:5501";
+})();
 
 // Preference options with icons
 const preferenceOptions = {
@@ -145,27 +161,36 @@ const imageCache = new Map();
 
 async function apiRequest(path, options = {}) {
     const token = localStorage.getItem(authTokenStorageKey);
-    const response = await fetch(`${apiBaseUrl}${path}`, {
-        ...options,
-        headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            ...(options.headers || {})
+
+    try {
+        const response = await fetch(`${apiBaseUrl}${path}`, {
+            ...options,
+            headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                ...(options.headers || {})
+            }
+        });
+        const contentType = response.headers.get("content-type") || "";
+
+        if (!contentType.includes("application/json")) {
+            throw new Error("The backend is not responding correctly. Start the app with npm start and open http://localhost:5501.");
         }
-    });
-    const contentType = response.headers.get("content-type") || "";
 
-    if (!contentType.includes("application/json")) {
-        throw new Error("Backend API is not responding with JSON. Open the app at http://localhost:5501 or run npm start.");
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Request failed.");
+        }
+
+        return data;
+    } catch (error) {
+        if (error instanceof TypeError && error.message === "Failed to fetch") {
+            throw new Error("Could not connect to the app server. Please run npm start in the project folder and then open http://localhost:5501.");
+        }
+
+        throw error;
     }
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(data.message || "Request failed.");
-    }
-
-    return data;
 }
 
 async function createUser(name, email, password) {
