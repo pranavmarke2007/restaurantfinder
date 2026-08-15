@@ -398,6 +398,70 @@
             font: inherit;
         }
 
+        .fav-restaurants-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .fav-restaurants-input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-width: 0;
+        }
+
+        .fav-restaurants-input-group button {
+            padding: 8px 14px;
+            background: #2563eb;
+            color: white;
+            border: 1px solid #2563eb;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .fav-restaurants-input-group button:hover {
+            background: #1d4ed8;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tag {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #bae6fd;
+        }
+
+        .tag .remove-btn {
+            background: none;
+            border: none;
+            color: #0369a1;
+            cursor: pointer;
+            padding: 0;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .tag .remove-btn:hover {
+            color: #b91c1c;
+        }
+
         .modal-actions {
             display: flex;
             gap: 10px;
@@ -521,6 +585,19 @@
         <form id="preferencesForm" class="modal" method="dialog">
             <h2>Your Taste Preferences</h2>
             <p>Click cards to select your preferences (multi-select enabled)</p>
+ 
+            <!-- Restaurants -->
+            <div class="preference-section">
+                <h3>Favorite Restaurants You Like</h3>
+                <div class="fav-restaurants-input-group">
+                    <div class="autocomplete-container" style="flex: 1; position: relative;">
+                        <input type="text" id="favRestaurantInput" placeholder="Type a restaurant name and click Add" autocomplete="off">
+                        <ul id="favRestaurantAutocomplete" class="autocomplete-dropdown"></ul>
+                    </div>
+                    <button type="button" id="addFavRestaurantBtn">Add</button>
+                </div>
+                <div id="favRestaurantsTags" class="tags-container"></div>
+            </div>
 
             <!-- Cuisines -->
             <div class="preference-section">

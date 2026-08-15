@@ -37,11 +37,16 @@ const statusText = document.getElementById("status");
 const locationOptions = document.getElementById("locationOptions");
 const restaurantsList = document.getElementById("restaurants");
 const pagination = document.getElementById("pagination");
+const favRestaurantsTags = document.getElementById("favRestaurantsTags");
+const favRestaurantInput = document.getElementById("favRestaurantInput");
+const addFavRestaurantBtn = document.getElementById("addFavRestaurantBtn");
+const favRestaurantAutocomplete = document.getElementById("favRestaurantAutocomplete");
+
 
 const restaurantsPerPage = 10;
 const authTokenStorageKey = "restaurantFinderAuthToken";
-const apiBaseUrl = window.location.protocol === "file:" || window.location.port === "5500"
-    ? "http://localhost:5501"
+const apiBaseUrl = window.location.protocol === "file:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? (window.location.port === "5501" ? "" : "http://localhost:5501")
     : "";
 
 // Preference options with icons
@@ -235,12 +240,13 @@ function createDefaultPreferences() {
 
 function normalizePreferenceItem(item) {
     if (typeof item === "string") {
-        return { name: item.trim(), weight: 3 };
+        return { name: item.trim(), weight: 3, cuisine: "" };
     }
 
     return {
         name: String(item.name || "").trim(),
-        weight: Number(item.weight) || 3
+        weight: Number(item.weight) || 3,
+        cuisine: String(item.cuisine || "").trim()
     };
 }
 
@@ -250,7 +256,8 @@ function cleanPreferenceList(items) {
         .filter((item) => item.name.length > 0)
         .map((item) => ({
             name: item.name,
-            weight: Math.min(Math.max(item.weight, 1), 5)
+            weight: Math.min(Math.max(item.weight, 1), 5),
+            cuisine: item.cuisine || ""
         }));
 }
 
@@ -324,6 +331,7 @@ function parsePreferenceTextarea(value, weight) {
 
 function fillPreferencesForm() {
     // Render preference cards
+    renderFavoriteRestaurantsTags();
     renderPreferenceCards("cuisines", userPreferences.favoriteCuisines);
     renderPreferenceCards("dishes", userPreferences.favoriteDishes);
     renderPreferenceCards("dietary", userPreferences.dietaryPreferences);
@@ -333,6 +341,229 @@ function fillPreferencesForm() {
     renderPreferenceCards("features", userPreferences.features);
     tasteProfileInput.value = userPreferences.tasteProfile;
 }
+
+function renderFavoriteRestaurantsTags() {
+    if (!favRestaurantsTags) return;
+    favRestaurantsTags.innerHTML = "";
+    userPreferences.favoriteRestaurants.forEach((restaurant) => {
+        const tag = document.createElement("div");
+        tag.className = "tag";
+        tag.innerHTML = `
+            <span>${restaurant.name}</span>
+            <button type="button" class="remove-btn">&times;</button>
+        `;
+        tag.querySelector(".remove-btn").addEventListener("click", () => {
+            userPreferences.favoriteRestaurants = userPreferences.favoriteRestaurants.filter(
+                (r) => r.name !== restaurant.name
+            );
+            renderFavoriteRestaurantsTags();
+        });
+        favRestaurantsTags.appendChild(tag);
+    });
+}
+
+function addFavoriteRestaurantObject(favObj) {
+    const exists = userPreferences.favoriteRestaurants.some(
+        (r) => r.name.toLowerCase() === favObj.name.toLowerCase()
+    );
+    if (!exists) {
+        userPreferences.favoriteRestaurants.push({
+            name: favObj.name,
+            cuisine: favObj.cuisine || "",
+            weight: favObj.weight || 4
+        });
+        renderFavoriteRestaurantsTags();
+    }
+}
+
+function addFavoriteRestaurantFromInput() {
+    if (!favRestaurantInput) return;
+    const name = favRestaurantInput.value.trim();
+    if (!name) return;
+    
+    addFavoriteRestaurantObject({ name, cuisine: "", weight: 4 });
+    favRestaurantInput.value = "";
+}
+
+// Add event listeners for the favorite restaurants input
+if (addFavRestaurantBtn) {
+    addFavRestaurantBtn.addEventListener("click", () => {
+        if (favRestaurantAutocomplete) {
+            favRestaurantAutocomplete.classList.remove("active");
+        }
+        addFavoriteRestaurantFromInput();
+    });
+}
+
+let favRestaurantAutocompleteTimeout;
+let favRestaurantAutocompleteResults = [];
+let selectedFavRestaurantIndex = -1;
+
+async function fetchFavRestaurantSuggestions(input) {
+    const trimmedInput = input.trim();
+    if (trimmedInput.length < 2) {
+        if (favRestaurantAutocomplete) {
+            favRestaurantAutocomplete.classList.remove("active");
+            favRestaurantAutocomplete.innerHTML = "";
+        }
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `https://photon.komoot.io/api/?q=${encodeURIComponent(trimmedInput)}&limit=15`
+        );
+        if (!response.ok) return;
+
+        const data = await response.json();
+        
+        const restaurantFeatures = (data.features || []).filter(feature => {
+            const prop = feature.properties || {};
+            const osmKey = String(prop.osm_key || "").toLowerCase();
+            const osmValue = String(prop.osm_value || "").toLowerCase();
+            return osmKey === "amenity" && ["restaurant", "cafe", "fast_food", "pub", "bar", "food_court", "biergarten"].includes(osmValue);
+        });
+
+        const uniqueNames = new Set();
+        const suggestions = [];
+        
+        restaurantFeatures.forEach(feature => {
+            const prop = feature.properties || {};
+            const name = prop.name;
+            if (!name) return;
+            
+            const locationParts = [prop.city || prop.town || prop.village, prop.country].filter(Boolean);
+            const displayName = locationParts.length > 0 
+                ? `${name} (${locationParts.join(", ")})` 
+                : name;
+                
+            if (!uniqueNames.has(name.toLowerCase())) {
+                uniqueNames.add(name.toLowerCase());
+                suggestions.push({
+                    name: name,
+                    displayName: displayName,
+                    cuisine: prop.cuisine || ""
+                });
+            }
+        });
+
+        favRestaurantAutocompleteResults = suggestions.slice(0, 8);
+        if (!favRestaurantAutocomplete) return;
+        favRestaurantAutocomplete.innerHTML = "";
+        
+        if (favRestaurantAutocompleteResults.length > 0) {
+            favRestaurantAutocomplete.classList.add("active");
+            favRestaurantAutocompleteResults.forEach((result, index) => {
+                const li = document.createElement("li");
+                li.textContent = result.displayName;
+                li.addEventListener("click", () => {
+                    addFavoriteRestaurantObject({
+                        name: result.name,
+                        cuisine: result.cuisine || "",
+                        weight: 4
+                    });
+                    favRestaurantInput.value = "";
+                    favRestaurantAutocomplete.classList.remove("active");
+                    favRestaurantAutocomplete.innerHTML = "";
+                    favRestaurantAutocompleteResults = [];
+                });
+                li.addEventListener("mouseenter", () => {
+                    selectedFavRestaurantIndex = index;
+                    updateFavRestaurantAutocompleteSelection();
+                });
+                favRestaurantAutocomplete.appendChild(li);
+            });
+            selectedFavRestaurantIndex = -1;
+        } else {
+            favRestaurantAutocomplete.classList.remove("active");
+        }
+    } catch (error) {
+        console.error("Restaurant autocomplete error:", error);
+        if (favRestaurantAutocomplete) {
+            favRestaurantAutocomplete.classList.remove("active");
+        }
+    }
+}
+
+function updateFavRestaurantAutocompleteSelection() {
+    if (!favRestaurantAutocomplete) return;
+    const items = favRestaurantAutocomplete.querySelectorAll("li");
+    items.forEach((item, index) => {
+        if (index === selectedFavRestaurantIndex) {
+            item.classList.add("selected");
+        } else {
+            item.classList.remove("selected");
+        }
+    });
+}
+
+if (favRestaurantInput) {
+    favRestaurantInput.addEventListener("input", (event) => {
+        clearTimeout(favRestaurantAutocompleteTimeout);
+        const value = event.target.value;
+        selectedFavRestaurantIndex = -1;
+
+        if (value.trim().length < 2) {
+            if (favRestaurantAutocomplete) {
+                favRestaurantAutocomplete.classList.remove("active");
+                favRestaurantAutocomplete.innerHTML = "";
+            }
+            return;
+        }
+
+        favRestaurantAutocompleteTimeout = setTimeout(() => {
+            fetchFavRestaurantSuggestions(value);
+        }, 300);
+    });
+
+    favRestaurantInput.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowDown") {
+            event.preventDefault();
+            selectedFavRestaurantIndex = Math.min(selectedFavRestaurantIndex + 1, favRestaurantAutocompleteResults.length - 1);
+            updateFavRestaurantAutocompleteSelection();
+        } else if (event.key === "ArrowUp") {
+            event.preventDefault();
+            selectedFavRestaurantIndex = Math.max(selectedFavRestaurantIndex - 1, -1);
+            updateFavRestaurantAutocompleteSelection();
+        } else if (event.key === "Enter") {
+            event.preventDefault();
+            if (selectedFavRestaurantIndex >= 0 && favRestaurantAutocompleteResults[selectedFavRestaurantIndex]) {
+                const result = favRestaurantAutocompleteResults[selectedFavRestaurantIndex];
+                addFavoriteRestaurantObject({
+                    name: result.name,
+                    cuisine: result.cuisine || "",
+                    weight: 4
+                });
+                favRestaurantInput.value = "";
+                if (favRestaurantAutocomplete) {
+                    favRestaurantAutocomplete.classList.remove("active");
+                    favRestaurantAutocomplete.innerHTML = "";
+                }
+                favRestaurantAutocompleteResults = [];
+            } else {
+                if (favRestaurantAutocomplete) {
+                    favRestaurantAutocomplete.classList.remove("active");
+                    favRestaurantAutocomplete.innerHTML = "";
+                }
+                addFavoriteRestaurantFromInput();
+            }
+        } else if (event.key === "Escape") {
+            if (favRestaurantAutocomplete) {
+                favRestaurantAutocomplete.classList.remove("active");
+                favRestaurantAutocomplete.innerHTML = "";
+            }
+            favRestaurantAutocompleteResults = [];
+        }
+    });
+}
+
+document.addEventListener("click", (event) => {
+    if (favRestaurantInput && favRestaurantAutocomplete && event.target !== favRestaurantInput && !favRestaurantAutocomplete.contains(event.target)) {
+        favRestaurantAutocomplete.classList.remove("active");
+    }
+});
+
+
 
 function renderPreferenceCards(category, selectedItems) {
     const containerId = `${category}Cards`;
@@ -526,6 +757,9 @@ function calculateDistanceKm(lat1, lon1, lat2, lon2) {
 
 function calculateRestaurantScore(restaurant, preferences) {
     const restaurantText = normalizeText(getRestaurantText(restaurant));
+    const restaurantName = normalizeText(restaurant.tags?.name || "");
+    const restaurantCuisine = normalizeText(restaurant.tags?.cuisine || restaurant.tags?.["diet:vegetarian"] || "");
+
     const cuisineScore = scorePreferenceList(
         restaurantText,
         preferences.favoriteCuisines,
@@ -538,27 +772,78 @@ function calculateRestaurantScore(restaurant, preferences) {
         30,
         "Dish match"
     );
-    const restaurantScore = scorePreferenceList(
-        restaurantText,
-        preferences.favoriteRestaurants,
-        20,
-        "Similar to favorite"
-    );
+
+    // Similar to Saved Favorites Score (max 20 points)
+    let bestFavoriteMatchScore = 0;
+    let favoriteMatchReason = "";
+    
+    preferences.favoriteRestaurants.forEach((fav) => {
+        let currentFavScore = 0;
+        let matchReasons = [];
+        
+        const favName = normalizeText(fav.name);
+        const favCuisine = normalizeText(fav.cuisine || "");
+        
+        // Exact name match (highest priority, e.g. chains)
+        if (restaurantName === favName || restaurantText.includes(favName)) {
+            currentFavScore += 20;
+            matchReasons.push(`Exact match for favorite: ${fav.name}`);
+        } else {
+            // Word overlap in name (e.g. "Pizza" in "Pizza Hut" and "Pizza Express")
+            const favWords = favName.split(/\W+/).filter(w => w.length > 3 && !["restaurant", "cafe", "hotel", "bhojnalay", "dhaba", "bar", "pub", "house", "place", "food", "kitchen"].includes(w));
+            let nameWordOverlap = false;
+            favWords.forEach(word => {
+                if (restaurantName.includes(word)) {
+                    nameWordOverlap = true;
+                }
+            });
+            if (nameWordOverlap) {
+                currentFavScore += 10;
+                matchReasons.push(`Similar style to favorite: ${fav.name}`);
+            }
+
+            // Cuisine similarity between the travel spot and the favorite spot
+            if (favCuisine && restaurantCuisine) {
+                const favCuisineList = favCuisine.split(/[\s,;]+/);
+                const restCuisineList = restaurantCuisine.split(/[\s,;]+/);
+                let cuisineOverlap = false;
+                favCuisineList.forEach(fc => {
+                    const cleanFc = fc.trim().toLowerCase();
+                    if (cleanFc && restCuisineList.some(rc => rc.trim().toLowerCase() === cleanFc)) {
+                        cuisineOverlap = true;
+                    }
+                });
+                if (cuisineOverlap) {
+                    currentFavScore += 10;
+                    matchReasons.push(`Same cuisine (${favCuisine}) as favorite: ${fav.name}`);
+                }
+            }
+        }
+        
+        if (currentFavScore > bestFavoriteMatchScore) {
+            bestFavoriteMatchScore = Math.min(20, currentFavScore);
+            favoriteMatchReason = matchReasons.join(" & ");
+        }
+    });
+
     const semanticValue = calculateTextSimilarity(restaurantText, preferences.tasteSignature);
     const semanticScore = Math.round(semanticValue * 10);
+    
     const reasons = [
         ...cuisineScore.reasons,
-        ...dishScore.reasons,
-        ...restaurantScore.reasons
+        ...dishScore.reasons
     ];
 
+    if (favoriteMatchReason) {
+        reasons.push(favoriteMatchReason);
+    }
     if (semanticScore > 0) {
         reasons.push("Matches your taste profile");
     }
 
     const score = Math.min(
         100,
-        cuisineScore.score + dishScore.score + restaurantScore.score + semanticScore
+        cuisineScore.score + dishScore.score + bestFavoriteMatchScore + semanticScore
     );
 
     return {
@@ -864,7 +1149,16 @@ async function saveRestaurantToFavorites(restaurant) {
     }
 
     if (restaurant.name !== "Unnamed restaurant") {
-        addPreferenceIfMissing(userPreferences.favoriteRestaurants, restaurant.name, 4);
+        const exists = userPreferences.favoriteRestaurants.some(
+            (r) => normalizeText(r.name) === normalizeText(restaurant.name)
+        );
+        if (!exists) {
+            userPreferences.favoriteRestaurants.push({
+                name: restaurant.name,
+                cuisine: restaurant.cuisine || "",
+                weight: 4
+            });
+        }
     }
 
     if (restaurant.cuisine) {
@@ -1204,7 +1498,42 @@ async function getRestaurants(lat, lon) {
     const data = await response.json();
     lastSearchPoint = { lat: Number(lat), lon: Number(lon) };
     lastSearchLabel = getPreferredLocationLabel(locationInput.value || "") || "restaurant";
-    restaurants = enhanceRestaurants(data.elements || [], lastSearchPoint);
+    
+    // First calculate local base scores
+    let localRestaurants = enhanceRestaurants(data.elements || [], lastSearchPoint);
+    
+    // Request AI-based recommendations to enrich the scores and reasons
+    try {
+        showMessage("AI is tailoring recommendations based on your favorite restaurants...");
+        const aiData = await apiRequest("/api/ai/recommend", {
+            method: "POST",
+            body: JSON.stringify({
+                preferences: userPreferences,
+                restaurants: localRestaurants
+            })
+        });
+
+        if (aiData && Array.isArray(aiData.matches)) {
+            // Map the AI results back into the list
+            const aiMatchesMap = new Map();
+            aiData.matches.forEach(m => {
+                aiMatchesMap.set(String(m.id), m);
+            });
+
+            localRestaurants.forEach(r => {
+                const aiMatch = aiMatchesMap.get(String(r.id));
+                if (aiMatch) {
+                    r.matchScore = aiMatch.score;
+                    r.matchReasons = [aiMatch.reason];
+                }
+            });
+            showMessage("AI recommendations ready!");
+        }
+    } catch (error) {
+        console.error("AI Recommendation failed, falling back to local search engine:", error);
+    }
+
+    restaurants = localRestaurants;
     applySortingAndRender();
 }
 

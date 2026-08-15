@@ -96,6 +96,44 @@ function createPublicUser(user) {
     };
 }
 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+
+async function callGemini(prompt) {
+    if (!GEMINI_API_KEY) {
+        throw new Error("GEMINI_API_KEY environment variable is not set.");
+    }
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+            responseMimeType: "application/json"
+        }
+    };
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!textContent) {
+        throw new Error("Empty response from Gemini API.");
+    }
+
+    return JSON.parse(textContent);
+}
+
+
 function getAuthToken(request) {
     const header = request.headers.authorization || "";
     return header.startsWith("Bearer ") ? header.slice(7) : "";
@@ -203,6 +241,80 @@ async function handleApi(request, response) {
 
         saveDatabase(database);
         return sendJson(response, 200, { user: createPublicUser(user) });
+    }
+
+    if (request.method === "POST" && request.url === "/api/ai/recommend") {
+        const user = getUserFromRequest(request, database);
+
+        if (!user) {
+            return sendJson(response, 401, { message: "Not signed in." });
+        }
+
+        const body = await readJsonBody(request);
+        const preferences = body.preferences;
+        const candidates = body.restaurants || [];
+
+        if (!preferences) {
+            return sendJson(response, 400, { message: "Preferences are required." });
+        }
+
+        if (candidates.length === 0) {
+            return sendJson(response, 200, { matches: [] });
+        }
+
+        const cleanCandidates = candidates.map(r => ({
+            id: r.id,
+            name: r.name,
+            cuisine: r.cuisine || r.tags?.cuisine || "",
+            address: r.address || "",
+            tags: {
+                amenity: r.tags?.amenity,
+                cuisine: r.tags?.cuisine,
+                description: r.tags?.description,
+                brand: r.tags?.brand
+            }
+        }));
+
+        const prompt = `
+You are TasteTwin, an expert AI travel guide and culinary matchmaking engine.
+The user is visiting a new city. Help match their local food preferences to nearby restaurants.
+
+USER'S LOCAL PREFERENCES:
+- Favorite Restaurants: ${JSON.stringify(preferences.favoriteRestaurants || [])}
+- Favorite Cuisines: ${JSON.stringify(preferences.favoriteCuisines || [])}
+- Favorite Dishes: ${JSON.stringify(preferences.favoriteDishes || [])}
+- Dietary Preferences: ${JSON.stringify(preferences.dietaryPreferences || [])}
+- Vibe/Atmosphere: ${JSON.stringify(preferences.atmosphere || [])}
+- Budget Range: ${JSON.stringify(preferences.budget || [])}
+- Taste Profile Notes: "${preferences.tasteProfile || ""}"
+
+NEARBY RESTAURANTS IN THE VISITED CITY:
+${JSON.stringify(cleanCandidates)}
+
+INSTRUCTIONS:
+1. Match the nearby restaurants against the user's taste preferences.
+2. Consider semantic matches. For example, if they like a certain local spot, look for nearby equivalents that serve the same food culture, thali styles, casual fast-food, or specific cuisines.
+3. Assign a match score from 0 to 100 for each restaurant.
+4. Write a highly personalized, friendly reason for each match (max 20 words). E.g. "Similar to [Favorite] because of its homestyle Thali styling." or "Matches your love for [Cuisine]."
+5. Return the scores and reasons strictly in this JSON format:
+{
+  "matches": [
+    {
+      "id": 12345, // ID from the candidates list (must be the exact same type: integer or string)
+      "score": 92,
+      "reason": "Personalized match reason explaining similarity to their favorite restaurant or preferences"
+    }
+  ]
+}
+`;
+
+        try {
+            const aiResponse = await callGemini(prompt);
+            return sendJson(response, 200, aiResponse);
+        } catch (error) {
+            console.error("AI Recommendation failed:", error);
+            return sendJson(response, 500, { message: "AI recommendation failed.", error: error.message });
+        }
     }
 
     return sendJson(response, 404, { message: "API route not found." });
