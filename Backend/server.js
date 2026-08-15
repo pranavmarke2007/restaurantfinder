@@ -1,11 +1,18 @@
+require("dotenv").config();
 const crypto = require("crypto");
 const fs = require("fs");
 const http = require("http");
 const path = require("path");
+const mongoose = require("mongoose");
 
 const port = process.env.PORT || 5501;
 const publicDir = __dirname;
 const databasePath = path.join(__dirname, "database.json");
+const cloudDatabaseUri = process.env.MONGODB_URI || process.env.MONGO_URI || "";
+
+if (!cloudDatabaseUri) {
+    console.log("Tip: add a .env file with MONGODB_URI='your-atlas-connection-string' to enable shared logins across devices.");
+}
 
 const contentTypes = {
     ".html": "text/html",
@@ -32,15 +39,77 @@ function createEmptyDatabase() {
     };
 }
 
-function loadDatabase() {
+const userSchema = new mongoose.Schema({
+    id: { type: String, required: true, unique: true },
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true, lowercase: true },
+    passwordSalt: { type: String, required: true },
+    passwordHash: { type: String, required: true },
+    preferences: { type: Object, default: () => createDefaultPreferences() },
+    onboardingComplete: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now }
+}, { collection: "users" });
+
+const sessionSchema = new mongoose.Schema({
+    token: { type: String, required: true, unique: true },
+    userId: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
+}, { collection: "sessions" });
+
+const User = mongoose.models.User || mongoose.model("User", userSchema);
+const Session = mongoose.models.Session || mongoose.model("Session", sessionSchema);
+
+async function connectToDatabase() {
+    if (!cloudDatabaseUri) {
+        console.log("No MongoDB URI configured. Using the local JSON database.");
+        return;
+    }
+
+    try {
+        await mongoose.connect(cloudDatabaseUri, {
+            serverSelectionTimeoutMS: 5000,
+            autoIndex: true
+        });
+        console.log("Connected to MongoDB Atlas successfully.");
+    } catch (error) {
+        console.error("MongoDB connection failed. Falling back to the local JSON database.", error.message);
+    }
+}
+
+async function loadDatabase() {
+    if (mongoose.connection.readyState === 1) {
+        const [users, sessions] = await Promise.all([
+            User.find().lean(),
+            Session.find().lean()
+        ]);
+        return { users, sessions };
+    }
+
     if (!fs.existsSync(databasePath)) {
-        saveDatabase(createEmptyDatabase());
+        await saveDatabase(createEmptyDatabase());
     }
 
     return JSON.parse(fs.readFileSync(databasePath, "utf8"));
 }
 
-function saveDatabase(database) {
+async function saveDatabase(database) {
+    if (mongoose.connection.readyState === 1) {
+        await Promise.all([
+            User.deleteMany({}),
+            Session.deleteMany({})
+        ]);
+
+        if (database.users.length) {
+            await User.insertMany(database.users);
+        }
+
+        if (database.sessions.length) {
+            await Session.insertMany(database.sessions);
+        }
+
+        return;
+    }
+
     fs.writeFileSync(databasePath, JSON.stringify(database, null, 2));
 }
 
@@ -151,7 +220,7 @@ function getUserFromRequest(request, database) {
 }
 
 async function handleApi(request, response) {
-    const database = loadDatabase();
+    const database = await loadDatabase();
 
     if (request.method === "POST" && request.url === "/api/auth/signup") {
         const body = await readJsonBody(request);
@@ -186,7 +255,7 @@ async function handleApi(request, response) {
 
         database.users.push(user);
         database.sessions.push({ token, userId: user.id, createdAt: new Date().toISOString() });
-        saveDatabase(database);
+        await saveDatabase(database);
 
         return sendJson(response, 201, { token, user: createPublicUser(user) });
     }
@@ -203,7 +272,7 @@ async function handleApi(request, response) {
 
         const token = crypto.randomBytes(32).toString("hex");
         database.sessions.push({ token, userId: user.id, createdAt: new Date().toISOString() });
-        saveDatabase(database);
+        await saveDatabase(database);
 
         return sendJson(response, 200, { token, user: createPublicUser(user) });
     }
@@ -211,7 +280,7 @@ async function handleApi(request, response) {
     if (request.method === "POST" && request.url === "/api/auth/logout") {
         const token = getAuthToken(request);
         const nextSessions = database.sessions.filter((session) => session.token !== token);
-        saveDatabase({ ...database, sessions: nextSessions });
+        await saveDatabase({ ...database, sessions: nextSessions });
         return sendJson(response, 200, { message: "Signed out." });
     }
 
@@ -239,7 +308,7 @@ async function handleApi(request, response) {
             user.onboardingComplete = body.onboardingComplete;
         }
 
-        saveDatabase(database);
+        await saveDatabase(database);
         return sendJson(response, 200, { user: createPublicUser(user) });
     }
 
@@ -364,6 +433,15 @@ const server = http.createServer((request, response) => {
     serveStatic(request, response);
 });
 
-server.listen(port, () => {
-    console.log(`Restaurant Finder running at http://localhost:${port}`);
+async function startServer() {
+    await connectToDatabase();
+
+    server.listen(port, () => {
+        console.log(`Restaurant Finder running at http://localhost:${port}`);
+    });
+}
+
+startServer().catch((error) => {
+    console.error("Failed to start server:", error);
+    process.exit(1);
 });

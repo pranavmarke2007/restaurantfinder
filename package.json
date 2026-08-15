@@ -5,5 +5,9 @@
   "scripts": {
     "start": "node Backend/server.js",
     "check": "node --check Backend/script.js && node --check Backend/server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "mongoose": "^9.9.2"
   }
 }
