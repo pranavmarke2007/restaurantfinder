@@ -174,7 +174,9 @@ async function apiRequest(path, options = {}) {
         const contentType = response.headers.get("content-type") || "";
 
         if (!contentType.includes("application/json")) {
-            throw new Error("The backend is not responding correctly. Start the app with npm start and open http://localhost:5501.");
+            throw new Error(
+                "The app server responded but not with JSON. Make sure you are opening this app at http://localhost:5501 (not by double-clicking the HTML file). Run `npm start` in the project terminal first."
+            );
         }
 
         const data = await response.json();
@@ -186,7 +188,9 @@ async function apiRequest(path, options = {}) {
         return data;
     } catch (error) {
         if (error instanceof TypeError && error.message === "Failed to fetch") {
-            throw new Error("Could not connect to the app server. Please run npm start in the project folder and then open http://localhost:5501.");
+            throw new Error(
+                "Could not reach the app server. Open a terminal in the project folder, run `npm start`, then visit http://localhost:5501 in your browser."
+            );
         }
 
         throw error;
@@ -1920,6 +1924,8 @@ importPreferencesInput.addEventListener("change", () => {
 });
 
 async function initializeApp() {
+    const hasStoredToken = Boolean(localStorage.getItem(authTokenStorageKey));
+
     try {
         currentUser = await loadCurrentUser();
         userPreferences = loadPreferences();
@@ -1931,7 +1937,8 @@ async function initializeApp() {
                 openPreferencesDialog();
             }
         } else {
-            openAuthDialog("signIn");
+            // No valid session: show sign-up for new visitors, sign-in for returning users
+            openAuthDialog(hasStoredToken ? "signIn" : "signUp");
         }
     } catch (error) {
         localStorage.removeItem(authTokenStorageKey);
@@ -1939,7 +1946,9 @@ async function initializeApp() {
         userPreferences = createDefaultPreferences();
         updateAuthUi();
         updatePreferenceSummary();
-        openAuthDialog("signIn");
+        // The stored token was invalid or the server is unreachable.
+        // Show sign-in so returning users can retry; first-time visitors see sign-up.
+        openAuthDialog(hasStoredToken ? "signIn" : "signUp");
     }
 }
 

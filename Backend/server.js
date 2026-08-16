@@ -59,6 +59,8 @@ const sessionSchema = new mongoose.Schema({
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 const Session = mongoose.models.Session || mongoose.model("Session", sessionSchema);
 
+let mongoReconnectTimer = null;
+
 async function connectToDatabase() {
     if (!cloudDatabaseUri) {
         console.log("No MongoDB URI configured. Using the local JSON database.");
@@ -67,14 +69,56 @@ async function connectToDatabase() {
 
     try {
         await mongoose.connect(cloudDatabaseUri, {
-            serverSelectionTimeoutMS: 5000,
+            serverSelectionTimeoutMS: 8000,
             autoIndex: true
         });
-        console.log("Connected to MongoDB Atlas successfully.");
+        console.log("Connected to MongoDB Atlas successfully. Login data will persist across devices.");
     } catch (error) {
-        console.error("MongoDB connection failed. Falling back to the local JSON database.", error.message);
+        console.error("MongoDB connection failed:", error.message);
+        console.log("Using the local JSON database for now. Will retry in 15 seconds...");
+        scheduleReconnect();
     }
 }
+
+function scheduleReconnect() {
+    if (mongoReconnectTimer || !cloudDatabaseUri) {
+        return;
+    }
+
+    mongoReconnectTimer = setTimeout(async () => {
+        mongoReconnectTimer = null;
+
+        if (mongoose.connection.readyState === 1) {
+            return;
+        }
+
+        console.log("Retrying MongoDB connection...");
+
+        try {
+            await mongoose.connect(cloudDatabaseUri, {
+                serverSelectionTimeoutMS: 8000,
+                autoIndex: true
+            });
+            console.log("Reconnected to MongoDB Atlas successfully.");
+        } catch (error) {
+            console.error("MongoDB reconnection failed:", error.message);
+            console.log("Will retry again in 15 seconds...");
+            scheduleReconnect();
+        }
+    }, 15000);
+}
+
+// Reconnect automatically if MongoDB drops during runtime
+mongoose.connection.on("disconnected", () => {
+    if (cloudDatabaseUri) {
+        console.log("MongoDB disconnected. Scheduling reconnection...");
+        scheduleReconnect();
+    }
+});
+
+mongoose.connection.on("error", (error) => {
+    console.error("MongoDB connection error:", error.message);
+});
 
 async function loadDatabase() {
     if (mongoose.connection.readyState === 1) {
