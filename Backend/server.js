@@ -26,6 +26,11 @@ function createDefaultPreferences() {
         favoriteRestaurants: [],
         favoriteCuisines: [],
         favoriteDishes: [],
+        dietaryPreferences: [],
+        mealType: [],
+        atmosphere: [],
+        budget: [],
+        features: [],
         tasteProfile: "",
         tasteSignature: "",
         savedRestaurants: []

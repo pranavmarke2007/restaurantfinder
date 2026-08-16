@@ -350,14 +350,6 @@ async function savePreferences(options = {}) {
     currentUser = data.user;
 }
 
-function parsePreferenceTextarea(value, weight) {
-    return value
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean)
-        .map((name) => ({ name, weight: Number(weight) || 3 }));
-}
-
 function fillPreferencesForm() {
     // Render preference cards
     renderFavoriteRestaurantsTags();
@@ -952,20 +944,6 @@ function getDirectRestaurantImage(tags) {
     return "";
 }
 
-async function getWikidataImage(wikidataId) {
-    if (!wikidataId) {
-        return "";
-    }
-
-    const response = await fetch(`https://www.wikidata.org/wiki/Special:EntityData/${wikidataId}.json`);
-    const data = await response.json();
-    const fileName = data.entities?.[wikidataId]?.claims?.P18?.[0]?.mainsnak?.datavalue?.value;
-
-    return fileName
-        ? `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}`
-        : "";
-}
-
 async function searchCommonsImage(query) {
     if (!query || query === "Unnamed restaurant") {
         return "";
@@ -989,122 +967,6 @@ async function searchCommonsImage(query) {
     return page?.imageinfo?.[0]?.url || "";
 }
 
-async function searchDuckDuckGoImage(query) {
-    if (!query || query === "Unnamed restaurant") {
-        return "";
-    }
-
-    try {
-        const searchQuery = `${query} restaurant`;
-        const params = new URLSearchParams({
-            q: searchQuery,
-            t: "h_",
-            ia: "images",
-            iax: "images"
-        });
-        const response = await fetch(`https://duckduckgo.com/?${params}`);
-
-        if (!response.ok) {
-            return "";
-        }
-
-        const html = await response.text();
-        const match = html.match(/"image":"([^"]+)"/);
-        return match ? match[1].replace(/\\\//g, "/") : "";
-    } catch (error) {
-        console.error("DuckDuckGo image search failed:", error);
-        return "";
-    }
-}
-
-async function searchGoogleRestaurantImage(query) {
-    if (!query || query === "Unnamed restaurant") {
-        return "";
-    }
-
-    try {
-        const searchQuery = `${query} restaurant`;
-        const params = new URLSearchParams({
-            q: searchQuery,
-            tbm: "isch"
-        });
-        const encodedUrl = `https://www.google.com/search?${params}`;
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(encodedUrl)}`;
-        
-        const response = await fetch(proxyUrl);
-        if (!response.ok) return "";
-
-        const html = await response.text();
-        const match = html.match(/"ou":"([^"]+)"/);
-        if (match && match[1]) {
-            const url = match[1];
-            return url.startsWith("http") ? url : "";
-        }
-        return "";
-    } catch (error) {
-        console.error("Google image search failed:", error);
-        return "";
-    }
-}
-
-async function searchUnsplashImage(query) {
-    if (!query || query === "Unnamed restaurant") {
-        return "";
-    }
-
-    try {
-        const searchQuery = `${query} restaurant food`;
-        const params = new URLSearchParams({
-            query: searchQuery,
-            per_page: "1",
-            order_by: "relevant"
-        });
-        const response = await fetch(`https://api.unsplash.com/search/photos?${params}`, {
-            headers: {
-                "Accept-Version": "v1"
-            }
-        });
-
-        if (!response.ok) {
-            return "";
-        }
-
-        const data = await response.json();
-        return data.results?.[0]?.urls?.regular || "";
-    } catch (error) {
-        console.error("Unsplash image search failed:", error);
-        return "";
-    }
-}
-
-async function searchPixabayImage(query) {
-    if (!query || query === "Unnamed restaurant") {
-        return "";
-    }
-
-    try {
-        const searchQuery = `${query} restaurant`;
-        const params = new URLSearchParams({
-            q: searchQuery,
-            image_type: "photo",
-            order: "popular",
-            per_page: "3",
-            safesearch: "true"
-        });
-        const response = await fetch(`https://pixabay.com/api/?${params}`);
-
-        if (!response.ok) {
-            return "";
-        }
-
-        const data = await response.json();
-        return data.hits?.[0]?.webformatURL || data.hits?.[0]?.pixelURL || "";
-    } catch (error) {
-        console.error("Pixabay image search failed:", error);
-        return "";
-    }
-}
-
 async function resolveRestaurantImage(restaurant) {
     const cacheKey = `${restaurant.id}-${restaurant.name}`;
 
@@ -1114,26 +976,6 @@ async function resolveRestaurantImage(restaurant) {
 
     const tags = restaurant.tags || {};
     let imageUrl = getDirectRestaurantImage(tags);
-
-    if (!imageUrl) {
-        imageUrl = await getWikidataImage(tags.wikidata);
-    }
-
-    if (!imageUrl) {
-        imageUrl = await searchGoogleRestaurantImage(`${restaurant.name} ${lastSearchLabel}`);
-    }
-
-    if (!imageUrl) {
-        imageUrl = await searchPixabayImage(`${restaurant.name} ${lastSearchLabel}`);
-    }
-
-    if (!imageUrl) {
-        imageUrl = await searchUnsplashImage(`${restaurant.name} ${lastSearchLabel}`);
-    }
-
-    if (!imageUrl) {
-        imageUrl = await searchDuckDuckGoImage(`${restaurant.name} ${lastSearchLabel}`);
-    }
 
     if (!imageUrl) {
         imageUrl = await searchCommonsImage(`${restaurant.name} ${lastSearchLabel}`);
