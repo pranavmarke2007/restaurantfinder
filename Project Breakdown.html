@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restaurant Finder — Project Presentation</title>
+<style>
+  @media print {
+    body { margin: 0.5in; }
+    .page-break { page-break-before: always; }
+    no-print { display: none !important; }
+  }
+  body {
+    font-family: 'Segoe UI', Calibri, Arial, sans-serif;
+    color: #1a1a2e;
+    background: #fff;
+    line-height: 1.65;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 50px;
+  }
+  h1 {
+    font-size: 32px;
+    color: #0f3460;
+    border-bottom: 3px solid #e94560;
+    padding-bottom: 10px;
+    margin-bottom: 5px;
+  }
+  h2 {
+    font-size: 22px;
+    color: #0f3460;
+    margin-top: 36px;
+    border-left: 4px solid #e94560;
+    padding-left: 12px;
+  }
+  h3 {
+    font-size: 17px;
+    color: #16213e;
+    margin-top: 22px;
+  }
+  .subtitle {
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 30px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 20px;
+    font-size: 14px;
+  }
+  th {
+    background: #0f3460;
+    color: #fff;
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+  }
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  tr:nth-child(even) td { background: #f8f9fa; }
+  code {
+    background: #f0f0f5;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 13px;
+    color: #c0392b;
+  }
+  pre {
+    background: #1a1a2e;
+    color: #e0e0e0;
+    padding: 16px 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+  }
+  .highlight-box {
+    background: #eef6ff;
+    border: 1px solid #b3d4fc;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .highlight-box strong { color: #0f3460; }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 18px 0;
+  }
+  .stat-card {
+    background: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-card .number {
+    font-size: 28px;
+    font-weight: bold;
+    color: #e94560;
+  }
+  .stat-card .label {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+  }
+  ul { margin: 8px 0; padding-left: 22px; }
+  li { margin-bottom: 5px; }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 8px 0;
+  }
+  .flow-num {
+    background: #e94560;
+    color: #fff;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .badge {
+    display: inline-block;
+    background: #0f3460;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .badge.green { background: #27ae60; }
+  .badge.orange { background: #e67e22; }
+  .section-divider {
+    border: none;
+    border-top: 2px dashed #ddd;
+    margin: 36px 0;
+  }
+  .print-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #e94560;
+    color: white;
+    border: none;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  .print-btn:hover { background: #c0392b; }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">🖨️ Save as PDF</button>
+
+<h1>Restaurant Finder</h1>
+<p class="subtitle">Full-Stack Web Application — Project Presentation</p>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="number">~3,000</div><div class="label">Lines of Code</div></div>
+  <div class="stat-card"><div class="number">2</div><div class="label">NPM Dependencies</div></div>
+  <div class="stat-card"><div class="number">9</div><div class="label">API Integrations</div></div>
+</div>
+
+<!-- ===================== SECTION 1 ===================== -->
+<h2>1. Project Overview</h2>
+<p><strong>Restaurant Finder</strong> is a full-stack web application that helps users discover nearby restaurants personalized to their taste preferences. When a user travels to a new city, the app finds restaurants near them and uses AI to match those restaurants against their local food preferences — giving each restaurant a personalized match score.</p>
+
+<div class="highlight-box">
+  <strong>Core Value Proposition:</strong> "Your taste, anywhere in the world." — Match local food preferences to restaurants in any new city using AI.
+</div>
+
+<!-- ===================== SECTION 2 ===================== -->
+<h2>2. Tech Stack</h2>
+<table>
+  <tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr>
+  <tr><td><strong>Frontend</strong></td><td>HTML5, CSS3, Vanilla JS (ES6+)</td><td>UI — no framework, pure DOM manipulation</td></tr>
+  <tr><td><strong>Backend</strong></td><td>Node.js (built-in <code>http</code> module)</td><td>Custom HTTP server — no Express.js</td></tr>
+  <tr><td><strong>Database (Primary)</strong></td><td>MongoDB Atlas (via Mongoose)</td><td>Cloud-persisted user accounts &amp; sessions</td></tr>
+  <tr><td><strong>Database (Fallback)</strong></td><td>Local JSON file</td><td>Used when MongoDB is unreachable</td></tr>
+  <tr><td><strong>AI Engine</strong></td><td>Google Gemini 2.0 Flash</td><td>Personalized restaurant recommendation scoring</td></tr>
+  <tr><td><strong>Map/Location Data</strong></td><td>OpenStreetMap ecosystem</td><td>Geocoding + restaurant discovery</td></tr>
+  <tr><td><strong>Image Sources</strong></td><td>Wikimedia Commons API + OSM tags</td><td>Free restaurant images</td></tr>
+  <tr><td><strong>Password Security</strong></td><td>Node.js <code>crypto</code> (PBKDF2)</td><td>Server-side password hashing</td></tr>
+  <tr><td><strong>Environment Config</strong></td><td><code>dotenv</code> package</td><td>Loads secrets from .env file</td></tr>
+</table>
+
+<div class="highlight-box">
+  <strong>NPM Dependencies (only 2):</strong><br>
+  • <code>dotenv</code> (^17.4.2) — environment variable management<br>
+  • <code>mongoose</code> (^9.9.2) — MongoDB ODM (Object-Document Mapper)
+</div>
+
+<!-- ===================== SECTION 3 ===================== -->
+<h2>3. Architecture &amp; File Structure</h2>
+<pre><code>restaurantfinder/
+├── Backend/
+│   ├── server.js        ← Node.js backend server (497 lines)
+│   ├── script.js        ← Frontend JavaScript (1798 lines)
+│   ├── index.html       ← Single-page frontend (670 lines)
+│   └── database.json    ← Local fallback database
+├── .env                 ← Secrets (not committed to Git)
+├── .env.example         ← Template for secrets
+├── package.json         ← Project config &amp; dependencies
+└── API_CONFIGURATION.md ← API documentation</code></pre>
+
+<p><strong>Key architectural decision:</strong> The server serves BOTH the static frontend files AND the API from the same origin (<code>http://localhost:5501</code>). There is no separate frontend build step — no webpack, no bundler.</p>
+
+<hr class="section-divider">
+
+<!-- ===================== SECTION 4 ===================== -->
+<h2>4. How the Server Works</h2>
+
+<h3>4.1 Custom HTTP Server (No Express)</h3>
+<p>Built from scratch using Node.js's native <code>http.createServer()</code>. It handles two types of requests:</p>
+<ul>
+  <li><strong>API requests</strong> (URL starts with <code>/api/</code>) → routed to <code>handleApi()</code></li>
+  <li><strong>Static file requests</strong> (everything else) → routed to <code>serveStatic()</code> which reads files from disk with correct MIME types</li>
+</ul>
+
+<h3>4.2 API Endpoints</h3>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Purpose</th></tr>
+  <tr><td><span class="badge green">POST</span></td><td><code>/api/auth/signup</code></td><td>Create new user account</td></tr>
+  <tr><td><span class="badge green">POST</span></td><td><code>/api/auth/login</code></td><td>Authenticate existing user</td></tr>
+  <tr><td><span class="badge green">POST</span></td><td><code>/api/auth/logout</code></td><td>Invalidate session token</td></tr>
+  <tr><td><span class="badge">GET</span></td><td><code>/api/me</code></td><td>Get current logged-in user's profile</td></tr>
+  <tr><td><span class="badge orange">PUT</span></td><td><code>/api/preferences</code></td><td>Update user's taste preferences</td></tr>
+  <tr><td><span class="badge green">POST</span></td><td><code>/api/ai/recommend</code></td><td>Get AI-powered restaurant match scores</td></tr>
+  <tr><td><span class="badge">OPTIONS</span></td><td><code>*</code></td><td>CORS preflight handler</td></tr>
+</table>
+
+<h3>4.3 Authentication System</h3>
+<ul>
+  <li><strong>Password hashing:</strong> PBKDF2 algorithm with SHA-512, 120,000 iterations, and a random 16-byte salt per user</li>
+  <li><strong>Session management:</strong> Token-based. On login/signup, a 32-byte random hex token is generated and stored in the database</li>
+  <li><strong>Timing-safe comparison:</strong> Uses <code>crypto.timingSafeEqual()</code> to prevent timing attacks on password verification</li>
+  <li><strong>No JWT:</strong> Sessions are simple database lookups — token → userId → user object</li>
+</ul>
+
+<h3>4.4 Database Strategy (Dual-Layer)</h3>
+<p>The app has a <strong>graceful degradation</strong> pattern for the database:</p>
+<ol>
+  <li><strong>Primary:</strong> MongoDB Atlas (cloud) — via Mongoose ODM with schemas for <code>User</code> and <code>Session</code></li>
+  <li><strong>Fallback:</strong> Local <code>database.json</code> file — if MongoDB connection fails, the app automatically switches</li>
+  <li><strong>Auto-reconnect:</strong> If MongoDB disconnects during runtime, the server retries every 15 seconds automatically</li>
+</ol>
+
+<h3>4.5 AI Integration — Google Gemini</h3>
+<p>The <code>/api/ai/recommend</code> endpoint works as follows:</p>
+<ol>
+  <li>Receives the user's preferences + the list of nearby restaurants</li>
+  <li>Constructs a detailed prompt describing the user as a traveler looking for culinary matches</li>
+  <li>Sends it to <strong>Gemini 2.0 Flash</strong> with <code>responseMimeType: "application/json"</code> to force structured JSON output</li>
+  <li>Gemini returns match scores (0–100) and personalized reasons for each restaurant</li>
+  <li>If Gemini fails or no API key is set, the app falls back to a <strong>local text-based scoring algorithm</strong></li>
+</ol>
+
+<hr class="section-divider">
+
+<!-- ===================== SECTION 5 ===================== -->
+<h2>5. How the Frontend Works</h2>
+
+<h3>5.1 Application Flow</h3>
+<div class="flow-step"><div class="flow-num">1</div><div>User opens app → Auth dialog appears (Sign In / Sign Up)</div></div>
+<div class="flow-step"><div class="flow-num">2</div><div>After login, if first time → Preferences onboarding dialog</div></div>
+<div class="flow-step"><div class="flow-num">3</div><div>User searches a location OR clicks "Use my current location"</div></div>
+<div class="flow-step"><div class="flow-num">4</div><div>App geocodes the location to coordinates (triple-provider fallback)</div></div>
+<div class="flow-step"><div class="flow-num">5</div><div>App queries Overpass API for restaurants within 5 km radius</div></div>
+<div class="flow-step"><div class="flow-num">6</div><div>App calculates local match scores based on preferences</div></div>
+<div class="flow-step"><div class="flow-num">7</div><div>App sends data to AI for enhanced scoring &amp; personalized reasons</div></div>
+<div class="flow-step"><div class="flow-num">8</div><div>Restaurants rendered as cards with images, scores, distances</div></div>
+<div class="flow-step"><div class="flow-num">9</div><div>User can sort, save favorites, export/import preferences</div></div>
+
+<h3>5.2 Geocoding — Triple-Provider Fallback</h3>
+<table>
+  <tr><th>Priority</th><th>Provider</th><th>URL</th><th>Key Required</th></tr>
+  <tr><td>1</td><td><strong>Open-Meteo</strong></td><td><code>geocoding-api.open-meteo.com</code></td><td>No</td></tr>
+  <tr><td>2</td><td><strong>Photon/Komoot</strong></td><td><code>photon.komoot.io</code></td><td>No</td></tr>
+  <tr><td>3</td><td><strong>Nominatim</strong></td><td><code>nominatim.openstreetmap.org</code></td><td>No</td></tr>
+</table>
+<p>If one provider fails, the next is tried automatically.</p>
+
+<h3>5.3 Restaurant Discovery — Overpass API</h3>
+<p>The app sends an Overpass QL query to OpenStreetMap to find all nodes/ways/relations tagged as <code>amenity=restaurant</code> within 5000 meters of the user's coordinates. This returns structured data including name, cuisine type, address, coordinates, and any images tagged on OpenStreetMap.</p>
+
+<h3>5.4 Image Resolution — Multi-Source Pipeline</h3>
+<table>
+  <tr><th>Priority</th><th>Source</th><th>Key Required</th></tr>
+  <tr><td>1</td><td>Direct image tag from OpenStreetMap</td><td>No</td></tr>
+  <tr><td>2</td><td>Wikimedia Commons file tag from OSM</td><td>No</td></tr>
+  <tr><td>3</td><td>Wikimedia Commons search by name</td><td>No</td></tr>
+  <tr><td>4</td><td>Placeholder image (placehold.co)</td><td>No</td></tr>
+</table>
+<p>Results are cached in a <code>Map</code> to avoid re-fetching during the same session.</p>
+
+<div class="page-break"></div>
+
+<h3>5.5 Local Scoring Algorithm (AI Fallback)</h3>
+<table>
+  <tr><th>Component</th><th>Max Points</th><th>How It Works</th></tr>
+  <tr><td>Cuisine match</td><td>40</td><td>Checks if restaurant text contains user's favorite cuisines (weighted)</td></tr>
+  <tr><td>Dish match</td><td>30</td><td>Checks if restaurant text contains user's favorite dishes (weighted)</td></tr>
+  <tr><td>Favorite restaurant similarity</td><td>20</td><td>Exact name match, word overlap, cuisine overlap with saved favorites</td></tr>
+  <tr><td>Semantic similarity</td><td>10</td><td>Word-set overlap between restaurant text and "taste signature"</td></tr>
+  <tr><td><strong>Total</strong></td><td><strong>100</strong></td><td></td></tr>
+</table>
+
+<h3>5.6 Sorting Modes</h3>
+<table>
+  <tr><th>Mode</th><th>Formula</th></tr>
+  <tr><td><strong>Recommended (Hybrid)</strong></td><td>60% match score + 40% proximity (normalized distance)</td></tr>
+  <tr><td><strong>Best Matches</strong></td><td>Pure match score, then distance as tiebreaker</td></tr>
+  <tr><td><strong>Closest</strong></td><td>Pure distance, then match score as tiebreaker</td></tr>
+</table>
+
+<h3>5.7 Distance Calculation</h3>
+<p>Uses the <strong>Haversine formula</strong> to calculate straight-line (great-circle) distance between two latitude/longitude points on Earth's surface. Earth radius = 6,371 km.</p>
+
+<h3>5.8 Preferences System</h3>
+<p>Users set preferences across <strong>8 categories</strong> via a card-based UI:</p>
+<table>
+  <tr><th>Category</th><th>Options Count</th><th>Examples</th></tr>
+  <tr><td>Favorite Restaurants</td><td>Free-text</td><td>Autocomplete via Photon API</td></tr>
+  <tr><td>Cuisines</td><td>12</td><td>Indian, Italian, Chinese, Mexican, Japanese, Thai…</td></tr>
+  <tr><td>Dishes</td><td>12</td><td>Biryani, Pizza, Sushi, Tacos, Dosa, Kebab…</td></tr>
+  <tr><td>Dietary</td><td>8</td><td>Vegetarian, Vegan, Halal, Jain, Gluten-free…</td></tr>
+  <tr><td>Meal Type</td><td>8</td><td>Breakfast, Lunch, Dinner, Brunch, Coffee…</td></tr>
+  <tr><td>Atmosphere</td><td>8</td><td>Casual, Fine Dining, Romantic, Cozy, Lively…</td></tr>
+  <tr><td>Budget</td><td>4</td><td>Budget, Moderate, Premium, Luxury</td></tr>
+  <tr><td>Features</td><td>8</td><td>WiFi, Parking, Outdoor Seating, Pet-friendly…</td></tr>
+</table>
+<p>Plus a free-text <strong>Taste Profile</strong> for additional notes (e.g., "Spicy food, family restaurants, romantic ambiance").</p>
+
+<h3>5.9 Additional Frontend Features</h3>
+<ul>
+  <li><strong>Export/Import Preferences</strong> — Download as JSON, or import from a JSON file</li>
+  <li><strong>Save to Favorites</strong> — Auto-adds restaurant's cuisine to preferences</li>
+  <li><strong>Directions</strong> — Opens Google Maps URL with restaurant as destination (no API key needed)</li>
+  <li><strong>Pagination</strong> — 10 restaurants per page</li>
+  <li><strong>Onboarding Flow</strong> — First-time users automatically shown preferences dialog</li>
+  <li><strong>Debounced Autocomplete</strong> — 300ms debounce on location &amp; restaurant search inputs</li>
+</ul>
+
+<hr class="section-divider">
+
+<!-- ===================== SECTION 6 ===================== -->
+<h2>6. All External API Integrations</h2>
+<table>
+  <tr><th>API</th><th>Purpose</th><th>Cost</th><th>Key?</th></tr>
+  <tr><td><strong>Overpass (OpenStreetMap)</strong></td><td>Restaurant data</td><td>FREE</td><td>No</td></tr>
+  <tr><td><strong>Nominatim (OpenStreetMap)</strong></td><td>Location geocoding + autocomplete</td><td>FREE</td><td>No</td></tr>
+  <tr><td><strong>Open-Meteo</strong></td><td>Geocoding fallback</td><td>FREE</td><td>No</td></tr>
+  <tr><td><strong>Photon/Komoot</strong></td><td>Geocoding + restaurant autocomplete</td><td>FREE</td><td>No</td></tr>
+  <tr><td><strong>Wikimedia Commons</strong></td><td>Restaurant images</td><td>FREE</td><td>No</td></tr>
+  <tr><td><strong>Google Gemini 2.0 Flash</strong></td><td>AI recommendations</td><td>Free tier</td><td>Yes</td></tr>
+  <tr><td><strong>MongoDB Atlas</strong></td><td>User database</td><td>Free tier</td><td>Yes</td></tr>
+  <tr><td><strong>Google Maps (URL only)</strong></td><td>Directions links</td><td>FREE</td><td>No</td></tr>
+  <tr><td><strong>placehold.co</strong></td><td>Placeholder images</td><td>FREE</td><td>No</td></tr>
+</table>
+<p><strong>9 APIs total, 7 are completely free with no key required.</strong></p>
+
+<hr class="section-divider">
+
+<!-- ===================== SECTION 7 ===================== -->
+<h2>7. Security Approach</h2>
+<table>
+  <tr><th>Concern</th><th>Solution</th></tr>
+  <tr><td>Password storage</td><td>PBKDF2 + SHA-512 + random salt (120,000 iterations)</td></tr>
+  <tr><td>Timing attacks</td><td><code>crypto.timingSafeEqual()</code> for password comparison</td></tr>
+  <tr><td>Session tokens</td><td>32-byte cryptographically random hex strings</td></tr>
+  <tr><td>API keys</td><td>Stored in <code>.env</code>, never committed to Git</td></tr>
+  <tr><td>Path traversal</td><td>Server checks <code>filePath.startsWith(publicDir)</code></td></tr>
+  <tr><td>CORS</td><td>Explicit headers for cross-origin requests</td></tr>
+  <tr><td>Password validation</td><td>Minimum 6 characters enforced</td></tr>
+  <tr><td>Data exposure</td><td><code>createPublicUser()</code> strips password hash/salt before sending to client</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<!-- ===================== SECTION 8 ===================== -->
+<h2>8. Key Design Patterns &amp; Approaches</h2>
+
+<h3>8.1 Graceful Degradation</h3>
+<p>Every external dependency has a fallback:</p>
+<ul>
+  <li>MongoDB → JSON file</li>
+  <li>Gemini AI → local scoring algorithm</li>
+  <li>3 geocoding providers tried in sequence</li>
+  <li>4-tier image resolution pipeline</li>
+</ul>
+
+<h3>8.2 Zero-Framework Backend</h3>
+<p>No Express, no Fastify. Pure Node.js <code>http</code> module. Zero middleware, full control over request handling, and minimal dependencies.</p>
+
+<h3>8.3 Single-Page App Without a Framework</h3>
+<p>Vanilla JS with direct DOM manipulation. No React, no Vue. Dialogs use the native HTML <code>&lt;dialog&gt;</code> element.</p>
+
+<h3>8.4 Dual Scoring Engine</h3>
+<p>AI scoring (Gemini) for personalization + local text-based scoring as fallback. The hybrid sort combines match quality with proximity.</p>
+
+<h3>8.5 Preference Normalization</h3>
+<p>All preference lists go through <code>normalizePreferences()</code> — ensures consistent structure (name + weight), removes empties, clamps weights 1–5, and generates a taste signature string.</p>
+
+<h3>8.6 Other Patterns</h3>
+<ul>
+  <li><strong>Debounced Autocomplete</strong> — 300ms debounce to avoid excessive API calls</li>
+  <li><strong>Image Caching</strong> — <code>Map</code>-based cache prevents re-fetching images</li>
+  <li><strong>Taste Signature</strong> — Concatenated string of all preferences for semantic comparison</li>
+</ul>
+
+<hr class="section-divider">
+
+<!-- ===================== SECTION 9 ===================== -->
+<h2>9. Environment Variables</h2>
+<pre><code>PORT=5501
+MONGODB_URI=mongodb+srv://&lt;username&gt;:&lt;password&gt;@&lt;cluster&gt;.mongodb.net/restaurantfinder
+GEMINI_API_KEY=your_gemini_api_key_here</code></pre>
+<table>
+  <tr><th>Variable</th><th>Required</th><th>Description</th></tr>
+  <tr><td><code>PORT</code></td><td>No</td><td>Server port (default: 5501)</td></tr>
+  <tr><td><code>MONGODB_URI</code></td><td>Recommended</td><td>MongoDB Atlas connection string. Without it, falls back to local JSON</td></tr>
+  <tr><td><code>GEMINI_API_KEY</code></td><td>Optional</td><td>Enables AI recommendations. Without it, local scoring is used</td></tr>
+</table>
+
+<hr class="section-divider">
+
+<!-- ===================== SECTION 10 ===================== -->
+<h2>10. Notable Technical Highlights</h2>
+<div class="stat-grid">
+  <div class="stat-card"><div class="number">2</div><div class="label">NPM Dependencies</div></div>
+  <div class="stat-card"><div class="number">9</div><div class="label">External APIs</div></div>
+  <div class="stat-card"><div class="number">7</div><div class="label">Free APIs (No Key)</div></div>
+  <div class="stat-card"><div class="number">120K</div><div class="label">PBKDF2 Iterations</div></div>
+  <div class="stat-card"><div class="number">5 km</div><div class="label">Search Radius</div></div>
+  <div class="stat-card"><div class="number">~3K</div><div class="label">Total Lines of Code</div></div>
+</div>
+
+<ul>
+  <li><strong>Only 2 NPM dependencies</strong> for a full-featured app with auth, AI, and database</li>
+  <li><strong>9 external API integrations</strong>, 7 completely free/keyless</li>
+  <li><strong>Works without any API keys</strong> — core features use free/open data</li>
+  <li><strong>Custom password hashing</strong> using Node.js crypto (no bcrypt dependency)</li>
+  <li><strong>Haversine formula</strong> for geographic distance calculation</li>
+  <li><strong>Semantic text matching</strong> using word-set intersection</li>
+  <li><strong>Native HTML <code>&lt;dialog&gt;</code> element</strong> for modals (modern browser API)</li>
+  <li><strong>Auto-reconnecting database</strong> with 15-second retry loop</li>
+  <li><strong>~3,000 lines of code total</strong> for a complete full-stack application</li>
+</ul>
+
+<div class="highlight-box">
+  <strong>Project's biggest strengths:</strong><br>
+  1. Graceful degradation at every layer<br>
+  2. Minimal dependency approach (only 2 packages)<br>
+  3. Creative use of free/open APIs to build a premium-feeling product<br>
+  4. Security-first authentication without heavy libraries<br>
+  5. AI-powered personalization with intelligent fallback
+</div>
+
+</body>
+</html>

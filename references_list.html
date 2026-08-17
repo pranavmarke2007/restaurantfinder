@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restaurant Finder — References & Technologies</title>
+<style>
+  @media print {
+    body { margin: 0.4in; }
+    .page-break { page-break-before: always; }
+    .no-print { display: none !important; }
+  }
+  body {
+    font-family: 'Segoe UI', Calibri, Arial, sans-serif;
+    color: #1a1a2e;
+    background: #fff;
+    line-height: 1.6;
+    max-width: 950px;
+    margin: 0 auto;
+    padding: 30px 40px;
+    font-size: 14px;
+  }
+  h1 {
+    font-size: 28px;
+    color: #0f3460;
+    border-bottom: 3px solid #e94560;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 28px;
+  }
+  h2 {
+    font-size: 20px;
+    color: #0f3460;
+    margin-top: 30px;
+    margin-bottom: 10px;
+    border-left: 4px solid #e94560;
+    padding-left: 10px;
+  }
+  h3 {
+    font-size: 15px;
+    color: #16213e;
+    margin-top: 16px;
+    margin-bottom: 6px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 18px 0;
+    font-size: 13px;
+  }
+  th {
+    background: #0f3460;
+    color: white;
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 600;
+  }
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #f8f9fc; }
+  .tag {
+    display: inline-block;
+    background: #e8f0fe;
+    color: #1a56db;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .tag-free { background: #d1fae5; color: #065f46; }
+  .tag-key { background: #fef3c7; color: #92400e; }
+  .tag-core { background: #ede9fe; color: #5b21b6; }
+  .algo-box {
+    background: #f8f9fc;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin: 8px 0 14px 0;
+  }
+  .algo-box strong { color: #0f3460; }
+  .formula {
+    font-family: 'Consolas', 'Courier New', monospace;
+    background: #f0f0f5;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: inline-block;
+    margin: 3px 0;
+  }
+  .ref-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 12px;
+  }
+  .ref-link:hover { text-decoration: underline; }
+  .section-note {
+    color: #555;
+    font-size: 12.5px;
+    font-style: italic;
+    margin-bottom: 8px;
+  }
+  ul { margin: 4px 0 12px 20px; padding: 0; }
+  li { margin-bottom: 4px; }
+  .save-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #e94560;
+    color: white;
+    border: none;
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(233,69,96,0.3);
+  }
+  .save-btn:hover { background: #c73650; }
+</style>
+</head>
+<body>
+
+<h1>Restaurant Finder — Complete Reference List</h1>
+<p class="subtitle">Every API, algorithm, framework, technique & technology used in the project</p>
+
+<!-- ===================== SECTION 1: EXTERNAL APIs ===================== -->
+<h2>1. External APIs Used</h2>
+<p class="section-note">All geographic/restaurant data APIs are free and open. No API key required unless noted.</p>
+
+<table>
+  <tr>
+    <th>API Name</th>
+    <th>Purpose</th>
+    <th>Endpoint URL</th>
+    <th>Key?</th>
+    <th>Docs Reference</th>
+  </tr>
+  <tr>
+    <td><strong>Google Gemini API</strong><br><span class="tag tag-key">API KEY</span></td>
+    <td>AI-powered restaurant recommendation engine (model: <code>gemini-2.0-flash</code>)</td>
+    <td><span class="formula">https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent</span></td>
+    <td>Yes</td>
+    <td><a class="ref-link" href="https://ai.google.dev/gemini-api/docs" target="_blank">ai.google.dev/gemini-api/docs</a></td>
+  </tr>
+  <tr>
+    <td><strong>Overpass API</strong><br><span class="tag tag-free">FREE</span></td>
+    <td>Query OpenStreetMap for nearby restaurants (amenity=restaurant) within 5 km radius</td>
+    <td><span class="formula">https://overpass-api.de/api/interpreter</span></td>
+    <td>No</td>
+    <td><a class="ref-link" href="https://wiki.openstreetmap.org/wiki/Overpass_API" target="_blank">wiki.openstreetmap.org/wiki/Overpass_API</a></td>
+  </tr>
+  <tr>
+    <td><strong>Nominatim (OpenStreetMap)</strong><br><span class="tag tag-free">FREE</span></td>
+    <td>Primary geocoding — convert city names/addresses to GPS coordinates</td>
+    <td><span class="formula">https://nominatim.openstreetmap.org/search</span></td>
+    <td>No</td>
+    <td><a class="ref-link" href="https://nominatim.org/release-docs/latest/api/Search/" target="_blank">nominatim.org/release-docs/latest/api/Search/</a></td>
+  </tr>
+  <tr>
+    <td><strong>Open-Meteo Geocoding API</strong><br><span class="tag tag-free">FREE</span></td>
+    <td>Fallback #1 geocoding provider</td>
+    <td><span class="formula">https://geocoding-api.open-meteo.com/v1/search</span></td>
+    <td>No</td>
+    <td><a class="ref-link" href="https://open-meteo.com/en/docs/geocoding-api" target="_blank">open-meteo.com/en/docs/geocoding-api</a></td>
+  </tr>
+  <tr>
+    <td><strong>Photon / Komoot API</strong><br><span class="tag tag-free">FREE</span></td>
+    <td>Fallback #2 geocoding + autocomplete for restaurant name search</td>
+    <td><span class="formula">https://photon.komoot.io/api/</span></td>
+    <td>No</td>
+    <td><a class="ref-link" href="https://photon.komoot.io/" target="_blank">photon.komoot.io</a></td>
+  </tr>
+  <tr>
+    <td><strong>Wikimedia Commons API</strong><br><span class="tag tag-free">FREE</span></td>
+    <td>Search and retrieve restaurant images from Wikimedia's free media repository</td>
+    <td><span class="formula">https://commons.wikimedia.org/w/api.php</span></td>
+    <td>No</td>
+    <td><a class="ref-link" href="https://commons.wikimedia.org/wiki/Special:ApiSandbox" target="_blank">commons.wikimedia.org/wiki/Special:ApiSandbox</a></td>
+  </tr>
+  <tr>
+    <td><strong>Google Maps Directions URL</strong><br><span class="tag tag-free">FREE</span></td>
+    <td>Construct navigation links (URL pattern, not an API call — no key needed)</td>
+    <td><span class="formula">https://www.google.com/maps/dir/?api=1&destination=LAT,LNG</span></td>
+    <td>No</td>
+    <td><a class="ref-link" href="https://developers.google.com/maps/documentation/urls/get-started-directions" target="_blank">developers.google.com/maps/documentation/urls</a></td>
+  </tr>
+  <tr>
+    <td><strong>Placeholder Image Service</strong><br><span class="tag tag-free">FREE</span></td>
+    <td>Generate placeholder images when no real image is found</td>
+    <td><span class="formula">https://placehold.co/600x400?text=Restaurant</span></td>
+    <td>No</td>
+    <td><a class="ref-link" href="https://placehold.co/" target="_blank">placehold.co</a></td>
+  </tr>
+</table>
+
+<!-- ===================== SECTION 2: DATABASE ===================== -->
+<h2>2. Database & Data Storage</h2>
+
+<table>
+  <tr>
+    <th>Technology</th>
+    <th>Purpose</th>
+    <th>Reference</th>
+  </tr>
+  <tr>
+    <td><strong>MongoDB Atlas</strong> <span class="tag tag-key">CLOUD</span></td>
+    <td>Cloud-hosted NoSQL database for user accounts, sessions, and preferences. Free tier (M0, 512 MB).</td>
+    <td><a class="ref-link" href="https://www.mongodb.com/atlas" target="_blank">mongodb.com/atlas</a></td>
+  </tr>
+  <tr>
+    <td><strong>Mongoose ODM</strong> <span class="tag tag-core">v9.9.2</span></td>
+    <td>Object-Document Modeling — defines schemas (User, Session), validates data, manages MongoDB connections from Node.js</td>
+    <td><a class="ref-link" href="https://mongoosejs.com/docs/" target="_blank">mongoosejs.com/docs/</a></td>
+  </tr>
+  <tr>
+    <td><strong>Local JSON File</strong> (database.json)</td>
+    <td>Fallback storage when MongoDB Atlas is unreachable — stores users and sessions locally on disk</td>
+    <td>Built-in Node.js <code>fs</code> module</td>
+  </tr>
+  <tr>
+    <td><strong>OpenStreetMap (OSM) Data</strong></td>
+    <td>Community-maintained open geographic database — source of all restaurant data via Overpass API</td>
+    <td><a class="ref-link" href="https://www.openstreetmap.org/" target="_blank">openstreetmap.org</a></td>
+  </tr>
+</table>
+
+<!-- ===================== SECTION 3: SECURITY ===================== -->
+<h2>3. Security Mechanisms</h2>
+
+<table>
+  <tr>
+    <th>Technique</th>
+    <th>Implementation Details</th>
+    <th>Node.js Module / Standard</th>
+    <th>Reference</th>
+  </tr>
+  <tr>
+    <td><strong>PBKDF2 Password Hashing</strong></td>
+    <td>Passwords hashed with <strong>SHA-512</strong> algorithm, <strong>120,000 iterations</strong>, random 16-byte salt per user. OWASP recommended approach.</td>
+    <td><code>crypto.pbkdf2Sync()</code></td>
+    <td><a class="ref-link" href="https://nodejs.org/api/crypto.html#cryptopbkdf2syncpassword-salt-iterations-keylen-digest-callback" target="_blank">Node.js crypto.pbkdf2Sync</a></td>
+  </tr>
+  <tr>
+    <td><strong>Timing-Safe Comparison</strong></td>
+    <td>Prevents timing attacks during password verification by comparing hashes in constant time</td>
+    <td><code>crypto.timingSafeEqual()</code></td>
+    <td><a class="ref-link" href="https://nodejs.org/api/crypto.html#cryptotimingsafeequala-b" target="_blank">Node.js crypto.timingSafeEqual</a></td>
+  </tr>
+  <tr>
+    <td><strong>Cryptographic Session Tokens</strong></td>
+    <td>64-character hex tokens generated from 32 random bytes, used as Bearer tokens for authentication</td>
+    <td><code>crypto.randomBytes(32)</code></td>
+    <td><a class="ref-link" href="https://nodejs.org/api/crypto.html#cryptorandombytessize-callback" target="_blank">Node.js crypto.randomBytes</a></td>
+  </tr>
+  <tr>
+    <td><strong>UUID User IDs</strong></td>
+    <td>Each user gets a universally unique identifier (UUID v4)</td>
+    <td><code>crypto.randomUUID()</code></td>
+    <td><a class="ref-link" href="https://nodejs.org/api/crypto.html#cryptorandomuuidoptions" target="_blank">Node.js crypto.randomUUID</a></td>
+  </tr>
+  <tr>
+    <td><strong>Environment Variable Protection</strong></td>
+    <td>API keys and DB credentials stored in <code>.env</code> file, never committed to Git (via <code>.gitignore</code>)</td>
+    <td><code>dotenv</code> npm package</td>
+    <td><a class="ref-link" href="https://www.npmjs.com/package/dotenv" target="_blank">npmjs.com/package/dotenv</a></td>
+  </tr>
+  <tr>
+    <td><strong>Path Traversal Protection</strong></td>
+    <td>Static file serving validates that resolved file paths stay within the public directory to prevent directory traversal attacks</td>
+    <td>Custom <code>filePath.startsWith(publicDir)</code> check</td>
+    <td>OWASP Path Traversal Prevention</td>
+  </tr>
+  <tr>
+    <td><strong>CORS Headers</strong></td>
+    <td>Cross-Origin Resource Sharing headers set on all API responses to allow browser-based requests</td>
+    <td><code>Access-Control-Allow-Origin: *</code></td>
+    <td><a class="ref-link" href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS" target="_blank">MDN Web Docs — CORS</a></td>
+  </tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ===================== SECTION 4: ALGORITHMS ===================== -->
+<h2>4. Algorithms & Mathematical Techniques</h2>
+
+<h3>4.1 Haversine Formula — GPS Distance Calculation</h3>
+<div class="algo-box">
+  <p><strong>Purpose:</strong> Calculate the straight-line (great-circle) distance between two GPS coordinates on Earth's surface.</p>
+  <p><strong>Used in:</strong> <code>calculateDistanceKm(lat1, lon1, lat2, lon2)</code> in <code>script.js</code></p>
+  <p><strong>Formula:</strong></p>
+  <p class="formula">a = sin²(Δlat/2) + cos(lat1) × cos(lat2) × sin²(Δlon/2)</p>
+  <p class="formula">distance = 2 × R × atan2(√a, √(1−a))</p>
+  <p>Where <strong>R = 6371 km</strong> (Earth's mean radius), Δlat and Δlon are converted to radians.</p>
+  <p><strong>Reference:</strong> <a class="ref-link" href="https://en.wikipedia.org/wiki/Haversine_formula" target="_blank">Wikipedia — Haversine formula</a></p>
+</div>
+
+<h3>4.2 Weighted Multi-Criteria Scoring Algorithm</h3>
+<div class="algo-box">
+  <p><strong>Purpose:</strong> Score each restaurant (0–100) against user preferences using multiple weighted criteria.</p>
+  <p><strong>Used in:</strong> <code>calculateRestaurantScore()</code> in <code>script.js</code></p>
+  <table>
+    <tr><th>Criteria</th><th>Max Points</th><th>Method</th></tr>
+    <tr><td>Cuisine Match</td><td>40</td><td>Weighted preference list matching against restaurant text</td></tr>
+    <tr><td>Dish Match</td><td>30</td><td>Weighted preference list matching against restaurant text</td></tr>
+    <tr><td>Favorite Restaurant Similarity</td><td>20</td><td>Exact name match (20pts), word overlap (10pts), cuisine overlap (10pts)</td></tr>
+    <tr><td>Semantic Taste Profile</td><td>10</td><td>Set-based word overlap between restaurant text and taste signature</td></tr>
+  </table>
+  <p><strong>Total = min(100, cuisine + dish + favorite + semantic)</strong></p>
+</div>
+
+<h3>4.3 Set-Based Text Similarity (Jaccard-like)</h3>
+<div class="algo-box">
+  <p><strong>Purpose:</strong> Measure semantic similarity between restaurant attributes and user's taste profile.</p>
+  <p><strong>Used in:</strong> <code>calculateTextSimilarity(sourceText, targetText)</code> in <code>script.js</code></p>
+  <p><strong>Method:</strong></p>
+  <ol>
+    <li>Normalize both texts (lowercase, remove special chars)</li>
+    <li>Tokenize into words, filter words ≤ 2 characters</li>
+    <li>Convert each to a <strong>Set</strong> of unique words</li>
+    <li>Count how many target words exist in source set</li>
+    <li><strong>Similarity = matches / targetWords.size</strong></li>
+  </ol>
+  <p><strong>Reference:</strong> Inspired by <a class="ref-link" href="https://en.wikipedia.org/wiki/Jaccard_index" target="_blank">Jaccard Index / Jaccard Similarity Coefficient</a></p>
+</div>
+
+<h3>4.4 Min-Max Normalization for Hybrid Sorting</h3>
+<div class="algo-box">
+  <p><strong>Purpose:</strong> Combine match score (0–100) and distance into a single composite ranking score.</p>
+  <p><strong>Used in:</strong> <code>sortRestaurants()</code> in <code>script.js</code> (hybrid mode)</p>
+  <p><strong>Method:</strong></p>
+  <p class="formula">normalizedDistance = (distance / maxDistance) × 100</p>
+  <p class="formula">compositeScore = (matchScore × 0.6) + ((100 − normalizedDistance) × 0.4)</p>
+  <p><strong>Weights:</strong> 60% match quality, 40% proximity</p>
+</div>
+
+<h3>4.5 Multi-Provider Fallback Chain</h3>
+<div class="algo-box">
+  <p><strong>Purpose:</strong> Ensure geocoding always succeeds by trying multiple providers sequentially.</p>
+  <p><strong>Used in:</strong> <code>getCoordinatesFromLocation()</code> in <code>script.js</code></p>
+  <p><strong>Chain:</strong> Open-Meteo → Photon/Komoot → Nominatim</p>
+  <p>If one provider fails or returns no results, the next is tried automatically.</p>
+</div>
+
+<h3>4.6 Image Resolution Priority Chain</h3>
+<div class="algo-box">
+  <p><strong>Purpose:</strong> Find the best available image for each restaurant through cascading fallbacks.</p>
+  <p><strong>Priority:</strong></p>
+  <ol>
+    <li>Direct image tag from OSM data (<code>tags.image</code>)</li>
+    <li>Wikimedia Commons file tag from OSM (<code>tags.wikimedia_commons</code>)</li>
+    <li>Wikimedia Commons search API (by restaurant name + city)</li>
+    <li>Placeholder image from placehold.co</li>
+  </ol>
+</div>
+
+<!-- ===================== SECTION 5: FRAMEWORKS & LIBS ===================== -->
+<h2>5. Frameworks, Libraries & Runtime</h2>
+
+<table>
+  <tr>
+    <th>Technology</th>
+    <th>Category</th>
+    <th>Version / Details</th>
+    <th>Role in Project</th>
+    <th>Reference</th>
+  </tr>
+  <tr>
+    <td><strong>Node.js</strong></td>
+    <td>Runtime Environment</td>
+    <td>Server-side JavaScript runtime</td>
+    <td>Runs the backend HTTP server; uses built-in modules: <code>http</code>, <code>crypto</code>, <code>fs</code>, <code>path</code></td>
+    <td><a class="ref-link" href="https://nodejs.org/en/docs" target="_blank">nodejs.org/en/docs</a></td>
+  </tr>
+  <tr>
+    <td><strong>Mongoose</strong></td>
+    <td>ODM Library</td>
+    <td>v9.9.2</td>
+    <td>MongoDB object modeling — schemas, validation, connection management, auto-reconnect</td>
+    <td><a class="ref-link" href="https://mongoosejs.com/docs/" target="_blank">mongoosejs.com/docs/</a></td>
+  </tr>
+  <tr>
+    <td><strong>dotenv</strong></td>
+    <td>Configuration</td>
+    <td>v17.4.2</td>
+    <td>Loads environment variables from <code>.env</code> file into <code>process.env</code></td>
+    <td><a class="ref-link" href="https://www.npmjs.com/package/dotenv" target="_blank">npmjs.com/package/dotenv</a></td>
+  </tr>
+  <tr>
+    <td><strong>Vanilla JavaScript (ES6+)</strong></td>
+    <td>Frontend Language</td>
+    <td>No framework — pure DOM</td>
+    <td>All frontend logic: API calls, DOM manipulation, event handling, async/await, fetch API</td>
+    <td><a class="ref-link" href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">MDN — JavaScript</a></td>
+  </tr>
+  <tr>
+    <td><strong>HTML5</strong></td>
+    <td>Markup</td>
+    <td>Semantic HTML</td>
+    <td>Structure — uses <code>&lt;dialog&gt;</code> element for modals, <code>&lt;form&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;section&gt;</code></td>
+    <td><a class="ref-link" href="https://developer.mozilla.org/en-US/docs/Web/HTML" target="_blank">MDN — HTML</a></td>
+  </tr>
+  <tr>
+    <td><strong>CSS3</strong></td>
+    <td>Styling</td>
+    <td>No preprocessor</td>
+    <td>Responsive layout via CSS Grid + Flexbox, print media queries, transitions, custom properties</td>
+    <td><a class="ref-link" href="https://developer.mozilla.org/en-US/docs/Web/CSS" target="_blank">MDN — CSS</a></td>
+  </tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ===================== SECTION 6: DESIGN PATTERNS ===================== -->
+<h2>6. Design Patterns & Architectural Techniques</h2>
+
+<table>
+  <tr>
+    <th>Pattern / Technique</th>
+    <th>Where Used</th>
+    <th>Description</th>
+    <th>Reference</th>
+  </tr>
+  <tr>
+    <td><strong>RESTful API Architecture</strong></td>
+    <td>Backend server.js</td>
+    <td>Custom HTTP server with REST endpoints: <code>/api/auth/signup</code>, <code>/api/auth/login</code>, <code>/api/auth/logout</code>, <code>/api/me</code>, <code>/api/preferences</code>, <code>/api/ai/recommend</code></td>
+    <td><a class="ref-link" href="https://restfulapi.net/" target="_blank">restfulapi.net</a></td>
+  </tr>
+  <tr>
+    <td><strong>Bearer Token Authentication</strong></td>
+    <td>Frontend + Backend</td>
+    <td>Token stored in <code>localStorage</code>, sent as <code>Authorization: Bearer &lt;token&gt;</code> header on every API request</td>
+    <td><a class="ref-link" href="https://swagger.io/docs/specifications/authentication/bearer-authentication/" target="_blank">Swagger — Bearer Auth</a></td>
+  </tr>
+  <tr>
+    <td><strong>Dual Database Strategy (Graceful Degradation)</strong></td>
+    <td>server.js — <code>loadDatabase()</code>, <code>saveDatabase()</code></td>
+    <td>Primary: MongoDB Atlas (cloud). Fallback: Local JSON file. Auto-reconnect with 15-second retry timer.</td>
+    <td>Resilience Pattern</td>
+  </tr>
+  <tr>
+    <td><strong>AI with Local Fallback</strong></td>
+    <td>script.js — <code>getRestaurants()</code></td>
+    <td>Primary: Gemini AI scoring. Fallback: Local weighted multi-criteria scoring algorithm if AI fails or no API key.</td>
+    <td>Graceful Degradation Pattern</td>
+  </tr>
+  <tr>
+    <td><strong>Client-Side Pagination</strong></td>
+    <td>script.js — <code>renderRestaurants()</code></td>
+    <td>Restaurants displayed 10 per page with numbered page buttons to avoid overwhelming the DOM</td>
+    <td>UI Performance Pattern</td>
+  </tr>
+  <tr>
+    <td><strong>Image Caching (In-Memory Map)</strong></td>
+    <td>script.js — <code>imageCache</code></td>
+    <td><code>Map</code> object caches resolved image URLs to avoid redundant API calls for the same restaurant</td>
+    <td>Cache Pattern</td>
+  </tr>
+  <tr>
+    <td><strong>Autocomplete / Typeahead</strong></td>
+    <td>script.js — Location input + Favorite restaurant input</td>
+    <td>Real-time suggestions dropdown as user types, powered by Photon/Komoot geocoding API</td>
+    <td>UX Pattern — Typeahead</td>
+  </tr>
+  <tr>
+    <td><strong>Geolocation API</strong></td>
+    <td>script.js — "Use my current location" button</td>
+    <td>Browser's <code>navigator.geolocation.getCurrentPosition()</code> to get user's GPS coordinates</td>
+    <td><a class="ref-link" href="https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API" target="_blank">MDN — Geolocation API</a></td>
+  </tr>
+  <tr>
+    <td><strong>Fetch API (async/await)</strong></td>
+    <td>Throughout frontend</td>
+    <td>All HTTP requests use modern <code>fetch()</code> with <code>async/await</code> pattern instead of callbacks or XMLHttpRequest</td>
+    <td><a class="ref-link" href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API" target="_blank">MDN — Fetch API</a></td>
+  </tr>
+  <tr>
+    <td><strong>Responsive CSS Grid + Flexbox</strong></td>
+    <td>index.html styles</td>
+    <td><code>grid-template-columns: repeat(auto-fit, minmax(280px, 1fr))</code> for adaptive card layouts. Flexbox for controls and bars.</td>
+    <td><a class="ref-link" href="https://css-tricks.com/snippets/css/complete-guide-grid/" target="_blank">CSS-Tricks — Grid</a></td>
+  </tr>
+  <tr>
+    <td><strong>HTML &lt;dialog&gt; Element</strong></td>
+    <td>Auth modal + Preferences modal</td>
+    <td>Native browser modal dialog with backdrop, no third-party library needed</td>
+    <td><a class="ref-link" href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog" target="_blank">MDN — dialog</a></td>
+  </tr>
+  <tr>
+    <td><strong>MIME Type Mapping</strong></td>
+    <td>server.js — <code>contentTypes</code></td>
+    <td>Maps file extensions (.html, .js, .css, .json) to correct HTTP Content-Type headers for static serving</td>
+    <td>HTTP Standard</td>
+  </tr>
+  <tr>
+    <td><strong>JSON Import/Export</strong></td>
+    <td>Preferences export/import buttons</td>
+    <td>Users can export their taste preferences as a JSON file and import them on another device</td>
+    <td>Data Portability Pattern</td>
+  </tr>
+  <tr>
+    <td><strong>Prompt Engineering</strong></td>
+    <td>server.js — <code>/api/ai/recommend</code></td>
+    <td>Structured system prompt sent to Gemini AI with user preferences + restaurant data, requesting JSON-formatted match scores with personalized reasons</td>
+    <td><a class="ref-link" href="https://ai.google.dev/gemini-api/docs/prompting-strategies" target="_blank">Gemini Prompting Guide</a></td>
+  </tr>
+</table>
+
+<!-- ===================== SECTION 7: DATA STANDARDS ===================== -->
+<h2>7. Data Standards & Protocols</h2>
+
+<table>
+  <tr>
+    <th>Standard</th>
+    <th>Usage</th>
+    <th>Reference</th>
+  </tr>
+  <tr>
+    <td><strong>HTTPS (TLS)</strong></td>
+    <td>All external API calls use secure HTTPS connections</td>
+    <td><a class="ref-link" href="https://developer.mozilla.org/en-US/docs/Glossary/HTTPS" target="_blank">MDN — HTTPS</a></td>
+  </tr>
+  <tr>
+    <td><strong>JSON (JavaScript Object Notation)</strong></td>
+    <td>All API request/response bodies, database fallback storage, preference import/export</td>
+    <td><a class="ref-link" href="https://www.json.org/" target="_blank">json.org</a></td>
+  </tr>
+  <tr>
+    <td><strong>GPS Coordinates (WGS 84)</strong></td>
+    <td>Latitude/longitude from geocoding APIs, used in Haversine formula for distance</td>
+    <td><a class="ref-link" href="https://en.wikipedia.org/wiki/World_Geodetic_System" target="_blank">WGS 84 — Wikipedia</a></td>
+  </tr>
+  <tr>
+    <td><strong>Overpass QL (Query Language)</strong></td>
+    <td>Querying OpenStreetMap data for restaurants within radius</td>
+    <td><a class="ref-link" href="https://wiki.openstreetmap.org/wiki/Overpass_API/Language_Guide" target="_blank">Overpass QL Guide</a></td>
+  </tr>
+  <tr>
+    <td><strong>MongoDB Connection URI (SRV)</strong></td>
+    <td><code>mongodb+srv://</code> protocol for connecting to MongoDB Atlas cluster</td>
+    <td><a class="ref-link" href="https://www.mongodb.com/docs/manual/reference/connection-string/" target="_blank">MongoDB Connection Strings</a></td>
+  </tr>
+</table>
+
+<!-- ===================== SECTION 8: SUMMARY STATS ===================== -->
+<h2>8. Quick Summary — By the Numbers</h2>
+<table>
+  <tr><th>Metric</th><th>Count</th></tr>
+  <tr><td>External APIs integrated</td><td><strong>8</strong> (Gemini, Overpass, Nominatim, Open-Meteo, Photon, Wikimedia Commons, Google Maps URLs, placehold.co)</td></tr>
+  <tr><td>APIs requiring keys</td><td><strong>2</strong> (Gemini AI, MongoDB Atlas)</td></tr>
+  <tr><td>Custom algorithms implemented</td><td><strong>5</strong> (Haversine, Weighted Scoring, Text Similarity, Min-Max Normalization, Fallback Chains)</td></tr>
+  <tr><td>Security mechanisms</td><td><strong>7</strong> (PBKDF2, Timing-safe compare, Crypto tokens, UUID, .env, Path protection, CORS)</td></tr>
+  <tr><td>NPM dependencies</td><td><strong>2</strong> (mongoose, dotenv) — minimal dependency philosophy</td></tr>
+  <tr><td>Lines of code</td><td><strong>~3,000+</strong> (server.js: 497, script.js: 1798, index.html: 670)</td></tr>
+  <tr><td>Frontend frameworks used</td><td><strong>0</strong> — Pure Vanilla JS, no React/Vue/Angular</td></tr>
+  <tr><td>Backend frameworks used</td><td><strong>0</strong> — Custom Node.js HTTP server, no Express</td></tr>
+</table>
+
+<button class="save-btn no-print" onclick="window.print()">Save as PDF</button>
+
+</body>
+</html>
